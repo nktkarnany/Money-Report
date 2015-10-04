@@ -5,15 +5,6 @@
     android:orientation="vertical">
 
     <EditText
-        android:id="@+id/addDate"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:ems="10"
-        android:hint="Enter Date of Transaction"
-        android:inputType="date"
-        android:padding="20dp" />
-
-    <EditText
         android:id="@+id/addAmt"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
