@@ -62,11 +62,12 @@ public class MainActivity extends AppCompatActivity {
                         sms = new Sms();
                         String body = c.getString(c.getColumnIndexOrThrow("body"));
                         String date = c.getString(c.getColumnIndexOrThrow("date"));
+                        sms.setMsgDate(date);
 
                         body = body.toLowerCase();
 
                         if ((body.contains("debit") || body.contains("withdraw")) && body.contains("bal")) {
-                            sms.setMsgDate("dr");
+                            sms.setMsgType("dr");
                             Pattern regex = Pattern.compile("([r][s]|[i][n][r])(\\s*.\\s*\\d*)");
                             Matcher m = regex.matcher(body);
                             if (m.find()) {
@@ -79,7 +80,7 @@ public class MainActivity extends AppCompatActivity {
                                     amt = amt.replace(" ", "");
                                     amt = amt.replace(",", "");
                                     Log.e("match saved", amt);
-                                    sms.setMsgBody(amt);
+                                    sms.setMsgAmt(amt);
                                 } catch (Exception e) {
                                     e.printStackTrace();
                                 }
@@ -90,6 +91,7 @@ public class MainActivity extends AppCompatActivity {
                                 continue;
                             }
                         } else if (body.contains("credit") && body.contains("bal")) {
+                            sms.setMsgType("cr");
                             int flag = 0;
                             Pattern regex = Pattern.compile("([r][s]|[i][n][r])(\\s*.\\s*\\d*)");
                             Matcher m1 = regex.matcher(body);
@@ -103,7 +105,7 @@ public class MainActivity extends AppCompatActivity {
                                     amt = amt.replace(" ", "");
                                     amt = amt.replace(",", "");
                                     Log.e("match saved1", amt);
-                                    sms.setMsgBody(amt);
+                                    sms.setMsgAmt(amt);
                                     flag = 1;
                                 } catch (Exception e) {
                                     e.printStackTrace();
@@ -127,7 +129,7 @@ public class MainActivity extends AppCompatActivity {
                                         amt = amt.replace(" ", "");
                                         amt = amt.replace(",", "");
                                         Log.e("match saved2", amt);
-                                        sms.setMsgDate(amt);
+                                        sms.setMsgBal(amt);
                                     } catch (Exception e) {
                                         e.printStackTrace();
                                     }

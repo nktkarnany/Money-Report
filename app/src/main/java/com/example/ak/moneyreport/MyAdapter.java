@@ -15,14 +15,18 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.ViewHolder> {
     List<Sms> smsList;
 
     public class ViewHolder extends RecyclerView.ViewHolder {
-        public TextView smsBody;
+        public TextView smsType;
+        public TextView smsAmt;
         public TextView smsDate;
+        public TextView smsBal;
 
         public ViewHolder(View v) {
             super(v);
 
-            smsBody = (TextView) v.findViewById(R.id.smsBody);
+            smsType = (TextView) v.findViewById(R.id.smsType);
+            smsAmt = (TextView) v.findViewById(R.id.smsAmt);
             smsDate = (TextView) v.findViewById(R.id.smsDate);
+            smsBal = (TextView) v.findViewById(R.id.smsBal);
         }
     }
 
@@ -40,8 +44,10 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.ViewHolder> {
 
     @Override
     public void onBindViewHolder(ViewHolder holder, int position) {
-        holder.smsBody.setText(smsList.get(position).getMsgBody());
+        holder.smsType.setText(smsList.get(position).getMsgType());
+        holder.smsAmt.setText(smsList.get(position).getMsgAmt());
         holder.smsDate.setText(smsList.get(position).getMsgDate());
+        holder.smsBal.setText(smsList.get(position).getMsgBal());
     }
 
     @Override

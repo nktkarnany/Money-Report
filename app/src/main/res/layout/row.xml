@@ -5,12 +5,22 @@
     android:orientation="vertical">
 
     <TextView
-        android:id="@+id/smsBody"
+        android:id="@+id/smsType"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+
+    <TextView
+        android:id="@+id/smsAmt"
         android:layout_width="match_parent"
         android:layout_height="wrap_content" />
 
     <TextView
         android:id="@+id/smsDate"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+
+    <TextView
+        android:id="@+id/smsBal"
         android:layout_width="match_parent"
         android:layout_height="wrap_content" />
 
