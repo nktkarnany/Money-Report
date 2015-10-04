@@ -11,6 +11,13 @@ public class Sms {
     public Sms() {
     }
 
+    public Sms(String msgType, String msgAmt, String msgDate, String msgBal) {
+        this.msgType = msgType;
+        this.msgAmt = msgAmt;
+        this.msgDate = msgDate;
+        this.msgBal = msgBal;
+    }
+
     public String getMsgType() {
         return this.msgType;
     }
