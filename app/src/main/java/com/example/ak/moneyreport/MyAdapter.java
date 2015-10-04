@@ -46,7 +46,7 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.ViewHolder> {
     public void onBindViewHolder(ViewHolder holder, int position) {
         holder.smsType.setText(smsList.get(position).getMsgType());
         holder.smsAmt.setText("INR " + smsList.get(position).getMsgAmt());
-        holder.smsDate.setText("Date: " + smsList.get(position).getMsgDate());
+        holder.smsDate.setText("Date: " + smsList.get(position).getFormatDate());
         holder.smsBal.setText(smsList.get(position).getMsgBal());
     }
 

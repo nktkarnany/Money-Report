@@ -8,7 +8,6 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -17,7 +16,13 @@ import android.widget.EditText;
 import android.widget.RadioGroup;
 import android.widget.Toast;
 
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -30,6 +35,8 @@ public class MainActivity extends AppCompatActivity {
 
     private String amt, type, balance;
     private int bal;
+
+    private String filename = "messages";
 
     MyAdapter adapter;
 
@@ -52,6 +59,21 @@ public class MainActivity extends AppCompatActivity {
                 readMessages();
             }
         });
+
+        try {
+            // file input stream is used to open a file for reading
+            FileInputStream f = context.openFileInput(filename);
+            // object input stream is used to read object from the file opened
+            ObjectInputStream i = new ObjectInputStream(f);
+            // object read is in the form of list<Receipt> so iterate over the list to extract all note objects.
+            for (Sms r : (List<Sms>) i.readObject()) {
+                smsList.add(r);
+            }
+            i.close();
+            f.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
     }
 
@@ -81,6 +103,8 @@ public class MainActivity extends AppCompatActivity {
                 String date = c.getString(c.getColumnIndexOrThrow("date"));
 
                 sms.setMsgDate(date);
+                sms.setFormatDate(getDate(Long.parseLong(date)));
+
                 body = body.toLowerCase();
 
                 if ((body.contains("debit") || body.contains("withdraw")) && body.contains("bal")) {
@@ -238,7 +262,9 @@ public class MainActivity extends AppCompatActivity {
                         } finally {
                             long time = System.currentTimeMillis();
                             Toast.makeText(MainActivity.this, "Transaction Added", Toast.LENGTH_SHORT).show();
-                            smsList.add(0, new Sms(type, amt, Long.toString(time), balance));
+                            Sms s = new Sms(type, amt, Long.toString(time), balance);
+                            s.setFormatDate(getDate(time));
+                            smsList.add(0, s);
                             adapter.notifyItemInserted(0);
                             dialog.dismiss();
                         }
@@ -247,5 +273,38 @@ public class MainActivity extends AppCompatActivity {
                 break;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        save();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        save();
+    }
+
+    public void save() {
+        try {
+            // file output stream is used to open a file for writing
+            FileOutputStream f = context.openFileOutput(filename, Context.MODE_PRIVATE);
+            // object output stream is used to write object to the file opened
+            ObjectOutputStream o = new ObjectOutputStream(f);
+            o.writeObject(smsList);
+            o.close();
+            f.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public String getDate(long milliSeconds) {
+        // Create a DateFormatter object for displaying date in specified format.
+        SimpleDateFormat formatter = new SimpleDateFormat("dd/MM/yyyy");
+        String dateString = formatter.format(new Date(milliSeconds));
+        return dateString;
     }
 }

@@ -7,6 +7,7 @@ public class Sms implements Serializable {
     private String msgType;
     private String msgAmt;
     private String msgDate;
+    private String formatDate;
     private String msgBal;
 
 
@@ -50,5 +51,13 @@ public class Sms implements Serializable {
 
     public void setMsgBal(String msgBal) {
         this.msgBal = msgBal;
+    }
+
+    public String getFormatDate() {
+        return this.formatDate;
+    }
+
+    public void setFormatDate(String formatDate) {
+        this.formatDate = formatDate;
     }
 }

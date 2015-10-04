@@ -28,8 +28,9 @@
         android:layout_toEndOf="@+id/smsType"
         android:padding="5dp"
         android:text="amt"
-        android:textSize="10dp"
-        android:typeface="monospace" />
+        android:textSize="15dp"
+        android:typeface="monospace"
+        android:textStyle="bold" />
 
     <TextView
         android:id="@+id/smsDate"
