@@ -3,7 +3,8 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:padding="2dp"
-    tools:context=".MainActivity">
+    tools:context=".MainActivity"
+    style="@style/Base.V7.Theme.AppCompat.Light">
 
 
     <android.support.v7.widget.RecyclerView
@@ -11,14 +12,16 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_above="@+id/readInbox"
-        android:padding="5dp"></android.support.v7.widget.RecyclerView>
+        android:padding="5dp"
+        style="@style/Base.Widget.AppCompat.ListView"></android.support.v7.widget.RecyclerView>
 
     <Button
         android:id="@+id/readInbox"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
-        android:text="Read Inbox" />
+        android:text="Read Inbox"
+        style="@style/Base.Widget.AppCompat.Button.Colored" />
 
 
 </RelativeLayout>

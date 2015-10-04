@@ -1,6 +1,8 @@
 package com.example.ak.moneyreport;
 
-public class Sms {
+import java.io.Serializable;
+
+public class Sms implements Serializable {
 
     private String msgType;
     private String msgAmt;

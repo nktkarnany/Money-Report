@@ -84,7 +84,7 @@ public class MainActivity extends AppCompatActivity {
                 body = body.toLowerCase();
 
                 if ((body.contains("debit") || body.contains("withdraw")) && body.contains("bal")) {
-                    sms.setMsgType("dr");
+                    sms.setMsgType("DR");
                     int flag = 0;
                     Matcher m1 = regex.matcher(body);
                     if (m1.find()) {
@@ -127,7 +127,7 @@ public class MainActivity extends AppCompatActivity {
                     }
 
                 } else if (body.contains("credit") && body.contains("bal")) {
-                    sms.setMsgType("cr");
+                    sms.setMsgType("CR");
                     int flag = 0;
                     Matcher m1 = regex.matcher(body);
                     if (m1.find()) {
@@ -211,7 +211,7 @@ public class MainActivity extends AppCompatActivity {
                         int selected = rg.getCheckedRadioButtonId();
                         try {
                             if (selected == R.id.debit) {
-                                type = "dr";
+                                type = "DR";
                                 // if id is 0 that means its the first receipt so balance is equal to the amount
                                 if (index >= 0) {
                                     // if not the first receipt get balance since last receipt and do appropriate operation
@@ -223,7 +223,7 @@ public class MainActivity extends AppCompatActivity {
                                     balance = "-" + amt;
                                 }
                             } else if (selected == R.id.credit) {
-                                type = "cr";
+                                type = "CR";
                                 if (index >= 0) {
                                     balance = smsList.get(0).getMsgBal();
                                     bal = Integer.parseInt(balance) + Integer.parseInt(amt);
