@@ -48,9 +48,6 @@ public class MainActivity extends AppCompatActivity {
 
     private String filename = "messages";
 
-    int[] firstData = {23, 145, 67, 78, 86, 190, 46, 78, 167, 164};
-    int[] secondData = {83, 45, 168, 138, 67, 150, 64, 87, 144, 188};
-
     MyAdapter adapter;
 
     @Override
@@ -286,7 +283,16 @@ public class MainActivity extends AppCompatActivity {
                 break;
 
             case R.id.forward:
-                getBarChart();
+                if (smsList.size() - 1 >= 0) {
+                    int[] data = new int[smsList.size() - 1];
+                    for (int i = 0; i < smsList.size() - 1; i++) {
+                        data[i] = smsList.get(i).getBalInt();
+                    }
+                    if (data.length != 0)
+                        getBarChart(data);
+                    else
+                        Toast.makeText(MainActivity.this, "Nothing to displaying", Toast.LENGTH_SHORT).show();
+                }
                 break;
         }
         return super.onOptionsItemSelected(item);
@@ -325,24 +331,19 @@ public class MainActivity extends AppCompatActivity {
         return dateString;
     }
 
-    public void getBarChart() {
+    public void getBarChart(int[] data) {
         XYMultipleSeriesRenderer barChartRenderer = getBarChartRenderer();
         setBarChartSettings(barChartRenderer);
-        Intent intent = ChartFactory.getBarChartIntent(this, getBarDemoDataset(), barChartRenderer, BarChart.Type.DEFAULT);
+        Intent intent = ChartFactory.getBarChartIntent(this, getBarDemoDataset(data), barChartRenderer, BarChart.Type.DEFAULT);
         startActivity(intent);
     }
 
-    private XYMultipleSeriesDataset getBarDemoDataset() {
+    private XYMultipleSeriesDataset getBarDemoDataset(int[] firstData) {
         XYMultipleSeriesDataset barChartDataset = new XYMultipleSeriesDataset();
-        CategorySeries firstSeries = new CategorySeries("Growth of Company1");
+        CategorySeries firstSeries = new CategorySeries("Balance");
         for (int i = 0; i < firstData.length; i++)
             firstSeries.add(firstData[i]);
         barChartDataset.addSeries(firstSeries.toXYSeries());
-
-        CategorySeries secondSeries = new CategorySeries("Growth of Company2");
-        for (int j = 0; j < secondData.length; j++)
-            secondSeries.add(secondData[j]);
-        barChartDataset.addSeries(secondSeries.toXYSeries());
         return barChartDataset;
     }
 
@@ -354,21 +355,18 @@ public class MainActivity extends AppCompatActivity {
         renderer.setLegendTextSize(18);
         renderer.setMargins(new int[]{20, 30, 15, 0});
         SimpleSeriesRenderer r = new SimpleSeriesRenderer();
-        r.setColor(Color.BLUE);
-        renderer.addSeriesRenderer(r);
-        r = new SimpleSeriesRenderer();
         r.setColor(Color.GREEN);
         renderer.addSeriesRenderer(r);
         return renderer;
     }
 
     private void setBarChartSettings(XYMultipleSeriesRenderer renderer) {
-        renderer.setChartTitle("Growth comparison company1 vs company2");
-        renderer.setXTitle("No of Years in industry");
-        renderer.setYTitle("Profit in millions");
-        renderer.setXAxisMin(0.5);
-        renderer.setXAxisMax(10.5);
+        renderer.setChartTitle("Available Balance Sheet");
+        renderer.setXTitle("Date Range");
+        renderer.setYTitle("Balance in INR");
+        renderer.setXAxisMin(1);
+        renderer.setXAxisMax(30);
         renderer.setYAxisMin(0);
-        renderer.setYAxisMax(210);
+        renderer.setYAxisMax(100000);
     }
 }
