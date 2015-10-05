@@ -37,6 +37,14 @@ public class Sms implements Serializable {
         return this.msgBal;
     }
 
+    public Long getDateLong() {
+        return Long.parseLong(this.msgDate);
+    }
+
+    public Long getBalLong() {
+        return new Long(Integer.parseInt(this.msgBal));
+    }
+
     public void setMsgType(String msgType) {
         this.msgType = msgType;
     }

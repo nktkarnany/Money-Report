@@ -2,7 +2,9 @@ package com.example.ak.moneyreport;
 
 import android.app.Dialog;
 import android.content.Context;
+import android.content.Intent;
 import android.database.Cursor;
+import android.graphics.Color;
 import android.net.Uri;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -16,10 +18,18 @@ import android.widget.EditText;
 import android.widget.RadioGroup;
 import android.widget.Toast;
 
+import org.achartengine.ChartFactory;
+import org.achartengine.chart.BarChart;
+import org.achartengine.model.CategorySeries;
+import org.achartengine.model.XYMultipleSeriesDataset;
+import org.achartengine.renderer.SimpleSeriesRenderer;
+import org.achartengine.renderer.XYMultipleSeriesRenderer;
+
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.io.Serializable;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -37,6 +47,9 @@ public class MainActivity extends AppCompatActivity {
     private int bal;
 
     private String filename = "messages";
+
+    int[] firstData = {23, 145, 67, 78, 86, 190, 46, 78, 167, 164};
+    int[] secondData = {83, 45, 168, 138, 67, 150, 64, 87, 144, 188};
 
     MyAdapter adapter;
 
@@ -271,6 +284,10 @@ public class MainActivity extends AppCompatActivity {
                     }
                 });
                 break;
+
+            case R.id.forward:
+                getBarChart();
+                break;
         }
         return super.onOptionsItemSelected(item);
     }
@@ -306,5 +323,52 @@ public class MainActivity extends AppCompatActivity {
         SimpleDateFormat formatter = new SimpleDateFormat("dd/MM/yyyy");
         String dateString = formatter.format(new Date(milliSeconds));
         return dateString;
+    }
+
+    public void getBarChart() {
+        XYMultipleSeriesRenderer barChartRenderer = getBarChartRenderer();
+        setBarChartSettings(barChartRenderer);
+        Intent intent = ChartFactory.getBarChartIntent(this, getBarDemoDataset(), barChartRenderer, BarChart.Type.DEFAULT);
+        startActivity(intent);
+    }
+
+    private XYMultipleSeriesDataset getBarDemoDataset() {
+        XYMultipleSeriesDataset barChartDataset = new XYMultipleSeriesDataset();
+        CategorySeries firstSeries = new CategorySeries("Growth of Company1");
+        for (int i = 0; i < firstData.length; i++)
+            firstSeries.add(firstData[i]);
+        barChartDataset.addSeries(firstSeries.toXYSeries());
+
+        CategorySeries secondSeries = new CategorySeries("Growth of Company2");
+        for (int j = 0; j < secondData.length; j++)
+            secondSeries.add(secondData[j]);
+        barChartDataset.addSeries(secondSeries.toXYSeries());
+        return barChartDataset;
+    }
+
+    public XYMultipleSeriesRenderer getBarChartRenderer() {
+        XYMultipleSeriesRenderer renderer = new XYMultipleSeriesRenderer();
+        renderer.setAxisTitleTextSize(20);
+        renderer.setChartTitleTextSize(18);
+        renderer.setLabelsTextSize(18);
+        renderer.setLegendTextSize(18);
+        renderer.setMargins(new int[]{20, 30, 15, 0});
+        SimpleSeriesRenderer r = new SimpleSeriesRenderer();
+        r.setColor(Color.BLUE);
+        renderer.addSeriesRenderer(r);
+        r = new SimpleSeriesRenderer();
+        r.setColor(Color.GREEN);
+        renderer.addSeriesRenderer(r);
+        return renderer;
+    }
+
+    private void setBarChartSettings(XYMultipleSeriesRenderer renderer) {
+        renderer.setChartTitle("Growth comparison company1 vs company2");
+        renderer.setXTitle("No of Years in industry");
+        renderer.setYTitle("Profit in millions");
+        renderer.setXAxisMin(0.5);
+        renderer.setXAxisMax(10.5);
+        renderer.setYAxisMin(0);
+        renderer.setYAxisMax(210);
     }
 }

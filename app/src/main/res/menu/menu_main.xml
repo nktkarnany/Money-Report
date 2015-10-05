@@ -7,4 +7,9 @@
         android:icon="@drawable/ic_action_add"
         android:title="Add Transaction"
         app:showAsAction="ifRoom|withText" />
+    <item
+        android:id="@+id/forward"
+        android:icon="@drawable/ic_action_arrow_forward"
+        android:title="Show Graph"
+        app:showAsAction="ifRoom" />
 </menu>
