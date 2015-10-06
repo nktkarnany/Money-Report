@@ -6,7 +6,6 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.graphics.Color;
 import android.net.Uri;
-import android.provider.Telephony;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
@@ -95,11 +94,10 @@ public class MainActivity extends AppCompatActivity {
         Uri uri = Uri.parse("content://sms/inbox");
         String filter = null;
 
-        String pattern = "([r][s]|[i][n][r])(\\s*.\\s*\\d*)";
+        String pattern = "(?:inr|rs)+[\\s]*+[0-9]*+[\\\\,]*+[0-9]*";
         Pattern regex = Pattern.compile(pattern);
 
         if (smsList.size() - 1 >= 0) {
-            Log.e("length not", "zero");
             String lastDate = smsList.get(0).getMsgDate();
             filter = "date>" + lastDate;
         }
@@ -107,13 +105,12 @@ public class MainActivity extends AppCompatActivity {
         Cursor c = getContentResolver().query(uri, new String[]{"date", "body"}, filter, null, null);
         int total = c.getCount();
 
-        if (total >= 0) {
+        if (c.moveToLast()) {
             for (int i = 0; i < total; i++) {
                 sms = new Sms();
 
-                c.moveToLast();
-                String date = c.getString(0);
-                String body = c.getString(1);
+                String date = c.getString(c.getColumnIndexOrThrow("date"));
+                String body = c.getString(c.getColumnIndexOrThrow("body"));
 
                 sms.setMsgDate(date);
                 sms.setFormatDate(getDate(Long.parseLong(date)));
@@ -121,7 +118,7 @@ public class MainActivity extends AppCompatActivity {
                 body = body.toLowerCase();
 
                 Log.e("reached", body);
-                if ((body.contains("debit") || body.contains("withdraw") || body.contains("avbl") || body.contains("available")) && body.contains("bal")) {
+                if ((body.contains("debit") || body.contains("withdraw") || body.contains("avbl") || body.contains("available")) && body.contains("bal") && !body.contains("recharge")) {
                     Log.e("dr msg", "Entered");
                     sms.setMsgType("DR");
                     int flag = 0;
@@ -167,7 +164,7 @@ public class MainActivity extends AppCompatActivity {
                         }
                     }
 
-                } else if ((body.contains("credit") || body.contains("avbl") || body.contains("available")) && body.contains("bal")) {
+                } else if ((body.contains("credit") || body.contains("avbl") || body.contains("available")) && body.contains("bal") && !body.contains("recharge")) {
                     Log.e("cr msg", "Entered");
                     sms.setMsgType("CR");
                     int flag = 0;
@@ -292,7 +289,6 @@ public class MainActivity extends AppCompatActivity {
 
             case R.id.forward:
                 int length = smsList.size();
-                Log.e("length of list", Integer.toString(length));
                 if (length > 0) {
                     int[] data = new int[length];
                     for (int i = 0; i <= length - 1; i++) {
@@ -374,8 +370,7 @@ public class MainActivity extends AppCompatActivity {
         renderer.setChartTitle("Balance Graph");
         renderer.setXTitle("Date Range");
         renderer.setYTitle("Balance in INR");
-        renderer.setBarWidth(60);
-        renderer.setXAxisMin(1);
+        renderer.setXAxisMin(0);
         renderer.setXAxisMax(30);
         renderer.setYAxisMin(0);
         renderer.setYAxisMax(60000);
