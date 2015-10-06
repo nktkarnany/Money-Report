@@ -56,7 +56,8 @@
         android:textIsSelectable="false"
         android:textSize="10dp"
         android:textStyle="bold"
-        android:typeface="monospace" />
+        android:typeface="monospace"
+        android:layout_alignParentEnd="true" />
 
     <TextView
         android:id="@+id/textView"
@@ -67,9 +68,10 @@
         android:layout_alignParentRight="true"
         android:layout_alignParentTop="true"
         android:layout_alignStart="@+id/smsBal"
-        android:gravity="bottom|center"
         android:padding="5dp"
         android:text="Bal"
-        android:typeface="monospace" />
+        android:typeface="monospace"
+        android:layout_alignParentEnd="true"
+        android:gravity="center|bottom" />
 
 </RelativeLayout>

@@ -6,10 +6,12 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.graphics.Color;
 import android.net.Uri;
+import android.provider.Telephony;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -29,7 +31,6 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.io.Serializable;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -52,6 +53,7 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        Log.e("Activity Lifecycle", "OnCreate Started");
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
@@ -75,7 +77,7 @@ public class MainActivity extends AppCompatActivity {
             FileInputStream f = context.openFileInput(filename);
             // object input stream is used to read object from the file opened
             ObjectInputStream i = new ObjectInputStream(f);
-            // object read is in the form of list<Receipt> so iterate over the list to extract all note objects.
+            // object read is in the form of list<Sms> so iterate over the list to extract all Sms objects.
             for (Sms r : (List<Sms>) i.readObject()) {
                 smsList.add(r);
             }
@@ -90,34 +92,37 @@ public class MainActivity extends AppCompatActivity {
     private void readMessages() {
 
         Sms sms;
-        Uri uri = Uri.parse("content://sms/draft");
+        Uri uri = Uri.parse("content://sms/inbox");
         String filter = null;
 
         String pattern = "([r][s]|[i][n][r])(\\s*.\\s*\\d*)";
         Pattern regex = Pattern.compile(pattern);
 
         if (smsList.size() - 1 >= 0) {
+            Log.e("length not", "zero");
             String lastDate = smsList.get(0).getMsgDate();
             filter = "date>" + lastDate;
         }
 
         Cursor c = getContentResolver().query(uri, new String[]{"date", "body"}, filter, null, null);
-        startManagingCursor(c);
         int total = c.getCount();
 
-        if (c.moveToLast()) {
+        if (total >= 0) {
             for (int i = 0; i < total; i++) {
                 sms = new Sms();
 
-                String body = c.getString(c.getColumnIndexOrThrow("body"));
-                String date = c.getString(c.getColumnIndexOrThrow("date"));
+                c.moveToLast();
+                String date = c.getString(0);
+                String body = c.getString(1);
 
                 sms.setMsgDate(date);
                 sms.setFormatDate(getDate(Long.parseLong(date)));
 
                 body = body.toLowerCase();
 
-                if ((body.contains("debit") || body.contains("withdraw")) && body.contains("bal")) {
+                Log.e("reached", body);
+                if ((body.contains("debit") || body.contains("withdraw") || body.contains("avbl") || body.contains("available")) && body.contains("bal")) {
+                    Log.e("dr msg", "Entered");
                     sms.setMsgType("DR");
                     int flag = 0;
                     Matcher m1 = regex.matcher(body);
@@ -151,6 +156,8 @@ public class MainActivity extends AppCompatActivity {
                                 amt = amt.replace(" ", "");
                                 amt = amt.replace(",", "");
                                 sms.setMsgBal(amt);
+                                smsList.add(0, sms);
+                                adapter.notifyItemInserted(0);
                             } catch (Exception e) {
                                 e.printStackTrace();
                             }
@@ -160,7 +167,8 @@ public class MainActivity extends AppCompatActivity {
                         }
                     }
 
-                } else if (body.contains("credit") && body.contains("bal")) {
+                } else if ((body.contains("credit") || body.contains("avbl") || body.contains("available")) && body.contains("bal")) {
+                    Log.e("cr msg", "Entered");
                     sms.setMsgType("CR");
                     int flag = 0;
                     Matcher m1 = regex.matcher(body);
@@ -193,6 +201,8 @@ public class MainActivity extends AppCompatActivity {
                                 amt = amt.replace(" ", "");
                                 amt = amt.replace(",", "");
                                 sms.setMsgBal(amt);
+                                smsList.add(0, sms);
+                                adapter.notifyItemInserted(0);
                             } catch (Exception e) {
                                 e.printStackTrace();
                             }
@@ -202,12 +212,10 @@ public class MainActivity extends AppCompatActivity {
                         }
                     }
                 }
-                smsList.add(0, sms);
-                adapter.notifyItemInserted(0);
                 c.moveToPrevious();
             }
         } else {
-            Toast.makeText(MainActivity.this, "No new sms to read!!", Toast.LENGTH_SHORT).show();
+            Toast.makeText(MainActivity.this, "No sms to read!!", Toast.LENGTH_SHORT).show();
         }
         c.close();
     }
@@ -283,15 +291,16 @@ public class MainActivity extends AppCompatActivity {
                 break;
 
             case R.id.forward:
-                if (smsList.size() - 1 >= 0) {
-                    int[] data = new int[smsList.size() - 1];
-                    for (int i = 0; i < smsList.size() - 1; i++) {
-                        data[i] = smsList.get(i).getBalInt();
+                int length = smsList.size();
+                Log.e("length of list", Integer.toString(length));
+                if (length > 0) {
+                    int[] data = new int[length];
+                    for (int i = 0; i <= length - 1; i++) {
+                        data[i] = smsList.get(length - 1 - i).getBalInt();
                     }
-                    if (data.length != 0)
-                        getBarChart(data);
-                    else
-                        Toast.makeText(MainActivity.this, "Nothing to displaying", Toast.LENGTH_SHORT).show();
+                    getBarChart(data);
+                } else {
+                    Toast.makeText(MainActivity.this, "Nothing to displaying", Toast.LENGTH_SHORT).show();
                 }
                 break;
         }
@@ -301,12 +310,14 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onPause() {
         super.onPause();
+        Log.e("Activity Lifecycle", "OnPause Started");
         save();
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        Log.e("Activity Lifecycle", "OnDestroy Started");
         save();
     }
 
@@ -326,9 +337,8 @@ public class MainActivity extends AppCompatActivity {
 
     public String getDate(long milliSeconds) {
         // Create a DateFormatter object for displaying date in specified format.
-        SimpleDateFormat formatter = new SimpleDateFormat("dd/MM/yyyy");
-        String dateString = formatter.format(new Date(milliSeconds));
-        return dateString;
+        SimpleDateFormat formatter = new SimpleDateFormat("yyyy/MM/dd HH:mm");
+        return formatter.format(new Date(milliSeconds));
     }
 
     public void getBarChart(int[] data) {
@@ -350,23 +360,25 @@ public class MainActivity extends AppCompatActivity {
     public XYMultipleSeriesRenderer getBarChartRenderer() {
         XYMultipleSeriesRenderer renderer = new XYMultipleSeriesRenderer();
         renderer.setAxisTitleTextSize(20);
-        renderer.setChartTitleTextSize(18);
-        renderer.setLabelsTextSize(18);
-        renderer.setLegendTextSize(18);
-        renderer.setMargins(new int[]{20, 30, 15, 0});
+        renderer.setChartTitleTextSize(20);
+        renderer.setLabelsTextSize(20);
+        renderer.setLegendTextSize(20);
+        renderer.setMargins(new int[]{30, 40, 30, 0});
         SimpleSeriesRenderer r = new SimpleSeriesRenderer();
-        r.setColor(Color.GREEN);
+        r.setColor(Color.parseColor("#008080"));
         renderer.addSeriesRenderer(r);
         return renderer;
     }
 
     private void setBarChartSettings(XYMultipleSeriesRenderer renderer) {
-        renderer.setChartTitle("Available Balance Sheet");
+        renderer.setChartTitle("Balance Graph");
         renderer.setXTitle("Date Range");
         renderer.setYTitle("Balance in INR");
+        renderer.setBarWidth(60);
         renderer.setXAxisMin(1);
         renderer.setXAxisMax(30);
         renderer.setYAxisMin(0);
-        renderer.setYAxisMax(100000);
+        renderer.setYAxisMax(60000);
     }
+
 }
