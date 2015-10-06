@@ -46,7 +46,14 @@ public class MainActivity extends AppCompatActivity {
     private String amt, type, balance;
     private int bal;
 
+    private int length_debit = 0;
+    private int length_online = 0;
+    private int length_credit = 0;
+
     private String filename = "messages";
+    private String TAG = "Log Debug";
+
+    private String pattern = "(?:inr|rs)+[\\s]*+[0-9]*+[\\\\,]*+[0-9]*";
 
     MyAdapter adapter;
 
@@ -79,6 +86,17 @@ public class MainActivity extends AppCompatActivity {
             // object read is in the form of list<Sms> so iterate over the list to extract all Sms objects.
             for (Sms r : (List<Sms>) i.readObject()) {
                 smsList.add(r);
+                switch (r.getMsgType()) {
+                    case "DR":
+                        length_debit += 1;
+                        break;
+                    case "Net Bank":
+                        length_online += 1;
+                        break;
+                    case "CR":
+                        length_credit += 1;
+                        break;
+                }
             }
             i.close();
             f.close();
@@ -94,10 +112,8 @@ public class MainActivity extends AppCompatActivity {
         Uri uri = Uri.parse("content://sms/inbox");
         String filter = null;
 
-        String pattern = "(?:inr|rs)+[\\s]*+[0-9]*+[\\\\,]*+[0-9]*";
-        Pattern regex = Pattern.compile(pattern);
 
-        if (smsList.size() - 1 >= 0) {
+        if (smsList.size() > 0) {
             String lastDate = smsList.get(0).getMsgDate();
             filter = "date>" + lastDate;
         }
@@ -111,6 +127,7 @@ public class MainActivity extends AppCompatActivity {
 
                 String date = c.getString(c.getColumnIndexOrThrow("date"));
                 String body = c.getString(c.getColumnIndexOrThrow("body"));
+                String t = "";
 
                 sms.setMsgAddress(body);
                 sms.setMsgDate(date);
@@ -118,97 +135,76 @@ public class MainActivity extends AppCompatActivity {
 
                 body = body.toLowerCase();
 
-                Log.e("reached", body);
-                if ((body.contains("debit") || body.contains("withdraw")) && body.contains("bal") && !body.contains("recharge")) {
-                    Log.e("dr msg", "Entered");
-                    sms.setMsgType("DR");
-                    int flag = 0;
-                    Matcher m1 = regex.matcher(body);
-                    if (m1.find()) {
-                        try {
-                            String amt = m1.group(0);
-                            amt = amt.replace("rs", "");
-                            amt = amt.replace("inr", "");
-                            amt = amt.replace(".", "");
-                            amt = amt.replace(" ", "");
-                            amt = amt.replace(",", "");
-                            sms.setMsgAmt(amt);
-                            flag = 1;
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                        }
-                    } else {
-                        c.moveToPrevious();
-                        continue;
-                    }
+                if (body.contains("debit") && body.contains("bal")) {
+                    t = "DR";
+                } else if (body.contains("online") && body.contains("payment") && !body.contains("bal")) {
+                    t = "Net Bank";
+                } else if (body.contains("credit") && (body.contains("net") || (body.contains("tot")) || (body.contains("total"))) && ((body.contains("avbl")) || body.contains("available")) && ((body.contains("bal")) || (body.contains("balance")))) {
+                    t = "CR";
+                }
 
-                    if (flag == 1) {
-                        body = body.replaceFirst(pattern, "");
-                        Matcher m2 = regex.matcher(body);
-                        if (m2.find()) {
-                            try {
-                                String amt = (m2.group(0));
-                                amt = amt.replace("rs", "");
-                                amt = amt.replace("inr", "");
-                                amt = amt.replace(".", "");
-                                amt = amt.replace(" ", "");
-                                amt = amt.replace(",", "");
-                                sms.setMsgBal(amt);
-                                smsList.add(0, sms);
-                                adapter.notifyItemInserted(0);
-                            } catch (Exception e) {
-                                e.printStackTrace();
-                            }
+                switch (t) {
+                    case "DR":
+                        sms.setMsgType(t);
+                        if (getAmount(body) != null) {
+                            sms.setMsgAmt(getAmount(body));
                         } else {
                             c.moveToPrevious();
                             continue;
                         }
-                    }
-
-                } else if (body.contains("credit") && body.contains("bal") && !body.contains("recharge")) {
-                    Log.e("cr msg", "Entered");
-                    sms.setMsgType("CR");
-                    int flag = 0;
-                    Matcher m1 = regex.matcher(body);
-                    if (m1.find()) {
-                        try {
-                            String amt = (m1.group(0));
-                            amt = amt.replace("rs", "");
-                            amt = amt.replace("inr", "");
-                            amt = amt.replace(".", "");
-                            amt = amt.replace(" ", "");
-                            amt = amt.replace(",", "");
-                            sms.setMsgAmt(amt);
-                            flag = 1;
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                        }
-                    } else {
-                        c.moveToPrevious();
-                        continue;
-                    }
-                    if (flag == 1) {
                         body = body.replaceFirst(pattern, "");
-                        Matcher m2 = regex.matcher(body);
-                        if (m2.find()) {
-                            try {
-                                String amt = (m2.group(0));
-                                amt = amt.replace("rs", "");
-                                amt = amt.replace("inr", "");
-                                amt = amt.replace(".", "");
-                                amt = amt.replace(" ", "");
-                                amt = amt.replace(",", "");
-                                sms.setMsgBal(amt);
-                                smsList.add(0, sms);
-                                adapter.notifyItemInserted(0);
-                            } catch (Exception e) {
-                                e.printStackTrace();
-                            }
+                        if (getAmount(body) != null) {
+                            sms.setMsgBal(getAmount(body));
+                            smsList.add(0, sms);
+                            length_debit += 1;
+                            adapter.notifyItemInserted(0);
                         } else {
                             c.moveToPrevious();
                             continue;
                         }
-                    }
+                        break;
+
+                    case "Net Bank":
+                        sms.setMsgType(t);
+                        if (getAmount(body) != null) {
+                            sms.setMsgAmt(getAmount(body));
+                        } else {
+                            c.moveToPrevious();
+                            continue;
+                        }
+                        if (smsList.size() > 0) {
+                            sms.setMsgBal(Integer.toString(smsList.get(0).getBalInt() - Integer.parseInt(getAmount(body))));
+                            smsList.add(0, sms);
+                            length_online += 1;
+                            adapter.notifyItemInserted(0);
+                        } else {
+                            sms.setMsgBal(getAmount(body));
+                            smsList.add(0, sms);
+                            length_online += 1;
+                            adapter.notifyItemInserted(0);
+                        }
+                        break;
+
+                    case "CR":
+                        sms.setMsgType(t);
+                        if (getAmount(body) != null) {
+                            sms.setMsgAmt(getAmount(body));
+                        } else {
+                            c.moveToPrevious();
+                            continue;
+                        }
+                        body = body.replaceFirst(pattern, "");
+                        if (getAmount(body) != null) {
+                            sms.setMsgBal(getAmount(body));
+                            smsList.add(0, sms);
+                            length_credit += 1;
+                            adapter.notifyItemInserted(0);
+                        } else {
+                            c.moveToPrevious();
+                            continue;
+                        }
+
+                        break;
                 }
                 c.moveToPrevious();
             }
@@ -216,6 +212,25 @@ public class MainActivity extends AppCompatActivity {
             Toast.makeText(MainActivity.this, "No sms to read!!", Toast.LENGTH_SHORT).show();
         }
         c.close();
+    }
+
+    public String getAmount(String data) {
+        Pattern regex = Pattern.compile(pattern);
+        Matcher matcher = regex.matcher(data);
+        if (matcher.find()) {
+            try {
+                String a = (matcher.group(0));
+                a = a.replace("rs", "");
+                a = a.replace("inr", "");
+                a = a.replace(".", "");
+                a = a.replace(" ", "");
+                a = a.replace(",", "");
+                return a;
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        return null;
     }
 
     @Override
@@ -252,9 +267,8 @@ public class MainActivity extends AppCompatActivity {
                         try {
                             if (selected == R.id.debit) {
                                 type = "DR";
-                                // if id is 0 that means its the first receipt so balance is equal to the amount
+                                length_debit += 1;
                                 if (index >= 0) {
-                                    // if not the first receipt get balance since last receipt and do appropriate operation
                                     balance = smsList.get(0).getMsgBal();
                                     bal = Integer.parseInt(balance) - Integer.parseInt(amt);
                                     balance = Integer.toString(bal);
@@ -264,6 +278,7 @@ public class MainActivity extends AppCompatActivity {
                                 }
                             } else if (selected == R.id.credit) {
                                 type = "CR";
+                                length_credit += 1;
                                 if (index >= 0) {
                                     balance = smsList.get(0).getMsgBal();
                                     bal = Integer.parseInt(balance) + Integer.parseInt(amt);
@@ -289,14 +304,28 @@ public class MainActivity extends AppCompatActivity {
                 break;
 
             case R.id.forward:
-                int length = smsList.size();
-                if (length > 0) {
-                    int[] data = new int[length];
-                    for (int i = 0; i <= length - 1; i++) {
-                        if (smsList.get(length - 1 - i).getMsgBal() != "")
-                            data[i] = smsList.get(length - 1 - i).getBalInt();
+                if (smsList.size() > 0) {
+                    int debit[] = new int[length_debit];
+                    int online[] = new int[length_online];
+                    int credit[] = new int[length_credit];
+
+                    int i = 0, j = 0, k = 0;
+                    for (Sms s : smsList) {
+                        switch (s.getMsgType()) {
+                            case "DR":
+                                debit[i] = s.getBalInt();
+                                i++;
+                                break;
+                            case "Net Bank":
+                                online[j] = s.getBalInt();
+                                j++;
+                                break;
+                            case "CR":
+                                credit[k] = s.getBalInt();
+                                k++;
+                        }
                     }
-                    getBarChart(data);
+                    getBarChart(credit, debit, online);
                 } else {
                     Toast.makeText(MainActivity.this, "Nothing to displaying", Toast.LENGTH_SHORT).show();
                 }
@@ -339,19 +368,30 @@ public class MainActivity extends AppCompatActivity {
         return formatter.format(new Date(milliSeconds));
     }
 
-    public void getBarChart(int[] data) {
+    public void getBarChart(int[] credit, int[] debit, int[] online) {
         XYMultipleSeriesRenderer barChartRenderer = getBarChartRenderer();
         setBarChartSettings(barChartRenderer);
-        Intent intent = ChartFactory.getBarChartIntent(this, getBarDemoDataset(data), barChartRenderer, BarChart.Type.DEFAULT);
+        Intent intent = ChartFactory.getBarChartIntent(this, getBarDemoDataset(credit, debit, online), barChartRenderer, BarChart.Type.DEFAULT);
         startActivity(intent);
     }
 
-    private XYMultipleSeriesDataset getBarDemoDataset(int[] firstData) {
+    private XYMultipleSeriesDataset getBarDemoDataset(int[] credit, int[] debit, int[] online) {
         XYMultipleSeriesDataset barChartDataset = new XYMultipleSeriesDataset();
-        CategorySeries firstSeries = new CategorySeries("Balance");
-        for (int i = 0; i < firstData.length; i++)
-            firstSeries.add(firstData[i]);
+        CategorySeries firstSeries = new CategorySeries("Income");
+        for (int i = 0; i < length_credit; i++)
+            firstSeries.add(credit[i]);
         barChartDataset.addSeries(firstSeries.toXYSeries());
+
+        CategorySeries secondSeries = new CategorySeries("Card Payment");
+        for (int i = 0; i < length_debit; i++)
+            secondSeries.add(debit[i]);
+        barChartDataset.addSeries(secondSeries.toXYSeries());
+
+        CategorySeries thirdSeries = new CategorySeries("Net Banking");
+        for (int i = 0; i < length_online; i++)
+            thirdSeries.add(online[i]);
+        barChartDataset.addSeries(thirdSeries.toXYSeries());
+
         return barChartDataset;
     }
 
@@ -363,15 +403,21 @@ public class MainActivity extends AppCompatActivity {
         renderer.setLegendTextSize(20);
         renderer.setMargins(new int[]{30, 40, 30, 0});
         SimpleSeriesRenderer r = new SimpleSeriesRenderer();
-        r.setColor(Color.parseColor("#008080"));
+        r.setColor(Color.parseColor("#00ff00"));
+        renderer.addSeriesRenderer(r);
+        r = new SimpleSeriesRenderer();
+        r.setColor(Color.parseColor("#ff0000"));
+        renderer.addSeriesRenderer(r);
+        r = new SimpleSeriesRenderer();
+        r.setColor(Color.parseColor("#0000ff"));
         renderer.addSeriesRenderer(r);
         return renderer;
     }
 
     private void setBarChartSettings(XYMultipleSeriesRenderer renderer) {
-        renderer.setChartTitle("Balance Graph");
-        renderer.setXTitle("Date Range");
-        renderer.setYTitle("Balance in INR");
+        renderer.setChartTitle("Balance Bar Chart");
+        renderer.setXTitle("Date -->");
+        renderer.setYTitle("Balance(INR)");
         renderer.setXAxisMin(0);
         renderer.setXAxisMax(30);
         renderer.setYAxisMin(0);
