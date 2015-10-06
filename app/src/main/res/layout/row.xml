@@ -7,6 +7,16 @@
     android:padding="2dp">
 
     <TextView
+        android:id="@+id/address"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/smsType"
+        android:layout_centerHorizontal="true"
+        android:padding="5dp"
+        android:text="New Text"
+        android:textColor="#f00" />
+
+    <TextView
         android:id="@+id/smsType"
         style="@style/Base.TextAppearance.AppCompat"
         android:layout_width="wrap_content"
@@ -29,8 +39,8 @@
         android:padding="5dp"
         android:text="amt"
         android:textSize="15dp"
-        android:typeface="monospace"
-        android:textStyle="bold" />
+        android:textStyle="bold"
+        android:typeface="monospace" />
 
     <TextView
         android:id="@+id/smsDate"
@@ -49,6 +59,7 @@
         style="@style/Base.TextAppearance.AppCompat"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_alignParentEnd="true"
         android:layout_alignParentRight="true"
         android:layout_below="@+id/textView"
         android:padding="10dp"
@@ -56,8 +67,7 @@
         android:textIsSelectable="false"
         android:textSize="10dp"
         android:textStyle="bold"
-        android:typeface="monospace"
-        android:layout_alignParentEnd="true" />
+        android:typeface="monospace" />
 
     <TextView
         android:id="@+id/textView"
@@ -65,13 +75,13 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignBottom="@+id/smsAmt"
+        android:layout_alignParentEnd="true"
         android:layout_alignParentRight="true"
         android:layout_alignParentTop="true"
         android:layout_alignStart="@+id/smsBal"
+        android:gravity="center|bottom"
         android:padding="5dp"
         android:text="Bal"
-        android:typeface="monospace"
-        android:layout_alignParentEnd="true"
-        android:gravity="center|bottom" />
+        android:typeface="monospace" />
 
 </RelativeLayout>

@@ -112,13 +112,14 @@ public class MainActivity extends AppCompatActivity {
                 String date = c.getString(c.getColumnIndexOrThrow("date"));
                 String body = c.getString(c.getColumnIndexOrThrow("body"));
 
+                sms.setMsgAddress(body);
                 sms.setMsgDate(date);
                 sms.setFormatDate(getDate(Long.parseLong(date)));
 
                 body = body.toLowerCase();
 
                 Log.e("reached", body);
-                if ((body.contains("debit") || body.contains("withdraw") || body.contains("avbl") || body.contains("available")) && body.contains("bal") && !body.contains("recharge")) {
+                if ((body.contains("debit") || body.contains("withdraw")) && body.contains("bal") && !body.contains("recharge")) {
                     Log.e("dr msg", "Entered");
                     sms.setMsgType("DR");
                     int flag = 0;
@@ -164,7 +165,7 @@ public class MainActivity extends AppCompatActivity {
                         }
                     }
 
-                } else if ((body.contains("credit") || body.contains("avbl") || body.contains("available")) && body.contains("bal") && !body.contains("recharge")) {
+                } else if (body.contains("credit") && body.contains("bal") && !body.contains("recharge")) {
                     Log.e("cr msg", "Entered");
                     sms.setMsgType("CR");
                     int flag = 0;
@@ -292,7 +293,8 @@ public class MainActivity extends AppCompatActivity {
                 if (length > 0) {
                     int[] data = new int[length];
                     for (int i = 0; i <= length - 1; i++) {
-                        data[i] = smsList.get(length - 1 - i).getBalInt();
+                        if (smsList.get(length - 1 - i).getMsgBal() != "")
+                            data[i] = smsList.get(length - 1 - i).getBalInt();
                     }
                     getBarChart(data);
                 } else {

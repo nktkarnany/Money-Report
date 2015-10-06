@@ -9,6 +9,7 @@ public class Sms implements Serializable {
     private String msgDate;
     private String formatDate;
     private String msgBal;
+    private String msgAddress;
 
 
     public Sms() {
@@ -39,6 +40,14 @@ public class Sms implements Serializable {
 
     public int getBalInt() {
         return Integer.parseInt(this.msgBal);
+    }
+
+    public String getMsgAddress() {
+        return this.msgAddress = msgAddress;
+    }
+
+    public void setMsgAddress(String msgAddress) {
+        this.msgAddress = msgAddress;
     }
 
     public void setMsgType(String msgType) {
