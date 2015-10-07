@@ -20,7 +20,7 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:padding="10dp"
-        android:weightSum="2">
+        android:weightSum="3">
 
         <RadioButton
             android:id="@+id/credit"
@@ -40,6 +40,15 @@
             android:layout_weight="1"
             android:padding="5dp"
             android:text="Debit" />
+
+        <RadioButton
+            android:id="@+id/online"
+            style="@style/Base.Widget.AppCompat.CompoundButton.RadioButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:padding="5dp"
+            android:text="Net Bank" />
     </RadioGroup>
 
     <Button

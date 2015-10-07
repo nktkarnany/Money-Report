@@ -139,7 +139,7 @@ public class MainActivity extends AppCompatActivity {
                     t = "DR";
                 } else if (body.contains("online") && body.contains("payment") && !body.contains("bal")) {
                     t = "Net Bank";
-                } else if (body.contains("credit") && (body.contains("net") || (body.contains("tot")) || (body.contains("total"))) && ((body.contains("avbl")) || body.contains("available")) && ((body.contains("bal")) || (body.contains("balance")))) {
+                } else if (body.contains("credit") && (body.contains("net") || (body.contains("tot")) || (body.contains("total"))) && ((body.contains("avbl")) || body.contains("available") || body.contains("avl")) && ((body.contains("bal")) || (body.contains("balance")))) {
                     t = "CR";
                 }
 
@@ -287,6 +287,17 @@ public class MainActivity extends AppCompatActivity {
                                     // positive in case of credit
                                     balance = amt;
                                 }
+                            } else if (selected == R.id.online) {
+                                type = "Net Bank";
+                                length_online += 1;
+                                if (index >= 0) {
+                                    balance = smsList.get(0).getMsgBal();
+                                    bal = Integer.parseInt(balance) - Integer.parseInt(amt);
+                                    balance = Integer.toString(bal);
+                                } else {
+                                    // negative in case of net banking
+                                    balance = "-" + amt;
+                                }
                             }
                         } catch (Exception e) {
                             e.printStackTrace();
@@ -309,23 +320,36 @@ public class MainActivity extends AppCompatActivity {
                     int online[] = new int[length_online];
                     int credit[] = new int[length_credit];
 
-                    int i = 0, j = 0, k = 0;
-                    for (Sms s : smsList) {
-                        switch (s.getMsgType()) {
+                    int i = 0, j = 0, k = 0, max = 0;
+                    int length = smsList.size();
+                    for (int l = 0; l < length; l++) {
+                        switch (smsList.get(length - 1 - l).getMsgType()) {
                             case "DR":
-                                debit[i] = s.getBalInt();
-                                i++;
+                                if (smsList.get(length - 1 - l).getMsgAmt() != "") {
+                                    debit[i] = Integer.parseInt(smsList.get(length - 1 - l).getMsgAmt());
+                                    if (debit[i] > max)
+                                        max = debit[i];
+                                    i++;
+                                }
                                 break;
                             case "Net Bank":
-                                online[j] = s.getBalInt();
-                                j++;
+                                if (smsList.get(length - 1 - l).getMsgAmt() != "") {
+                                    online[j] = Integer.parseInt(smsList.get(length - 1 - l).getMsgAmt());
+                                    if (online[j] > max)
+                                        max = online[j];
+                                    j++;
+                                }
                                 break;
                             case "CR":
-                                credit[k] = s.getBalInt();
-                                k++;
+                                if (smsList.get(length - 1 - l).getMsgAmt() != "") {
+                                    credit[k] = Integer.parseInt(smsList.get(length - 1 - l).getMsgAmt());
+                                    if (credit[k] > max)
+                                        max = credit[k];
+                                    k++;
+                                }
                         }
                     }
-                    getBarChart(credit, debit, online);
+                    getBarChart(credit, debit, online, max);
                 } else {
                     Toast.makeText(MainActivity.this, "Nothing to displaying", Toast.LENGTH_SHORT).show();
                 }
@@ -368,9 +392,9 @@ public class MainActivity extends AppCompatActivity {
         return formatter.format(new Date(milliSeconds));
     }
 
-    public void getBarChart(int[] credit, int[] debit, int[] online) {
+    public void getBarChart(int[] credit, int[] debit, int[] online, int max) {
         XYMultipleSeriesRenderer barChartRenderer = getBarChartRenderer();
-        setBarChartSettings(barChartRenderer);
+        setBarChartSettings(barChartRenderer, max);
         Intent intent = ChartFactory.getBarChartIntent(this, getBarDemoDataset(credit, debit, online), barChartRenderer, BarChart.Type.DEFAULT);
         startActivity(intent);
     }
@@ -414,14 +438,18 @@ public class MainActivity extends AppCompatActivity {
         return renderer;
     }
 
-    private void setBarChartSettings(XYMultipleSeriesRenderer renderer) {
-        renderer.setChartTitle("Balance Bar Chart");
-        renderer.setXTitle("Date -->");
-        renderer.setYTitle("Balance(INR)");
+    private void setBarChartSettings(XYMultipleSeriesRenderer renderer, int max) {
+        renderer.setChartTitle("Transaction Bar Chart");
+        renderer.setXTitle("Days");
+        renderer.setYTitle("Transaction Amount in INR");
+        renderer.setApplyBackgroundColor(true);
+        renderer.setBackgroundColor(Color.WHITE);
         renderer.setXAxisMin(0);
-        renderer.setXAxisMax(30);
+        renderer.setBarWidth(15);
+        renderer.setBarSpacing(0.0);
+        renderer.setXAxisMax(15);
         renderer.setYAxisMin(0);
-        renderer.setYAxisMax(60000);
+        renderer.setYAxisMax(max + 1000);
     }
 
 }
