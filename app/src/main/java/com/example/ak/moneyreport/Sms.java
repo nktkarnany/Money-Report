@@ -66,6 +66,10 @@ public class Sms implements Serializable {
         this.msgBal = msgBal;
     }
 
+    public long getDateLong() {
+        return Long.parseLong(this.msgDate);
+    }
+
     public String getFormatDate() {
         return this.formatDate;
     }

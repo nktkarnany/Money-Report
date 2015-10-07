@@ -139,7 +139,7 @@ public class MainActivity extends AppCompatActivity {
                     t = "DR";
                 } else if (body.contains("online") && body.contains("payment") && !body.contains("bal")) {
                     t = "Net Bank";
-                } else if (body.contains("credit") && (body.contains("net") || (body.contains("tot")) || (body.contains("total"))) && ((body.contains("avbl")) || body.contains("available") || body.contains("avl")) && ((body.contains("bal")) || (body.contains("balance")))) {
+                } else if (body.contains("credit") && ((body.contains("avbl")) || body.contains("available") || body.contains("avl")) && ((body.contains("bal")) || (body.contains("balance")))) {
                     t = "CR";
                 }
 
@@ -317,6 +317,7 @@ public class MainActivity extends AppCompatActivity {
             case R.id.forward:
                 if (smsList.size() > 0) {
                     int debit[] = new int[length_debit];
+                    String debit_week[] = new String[length_debit];
                     int online[] = new int[length_online];
                     int credit[] = new int[length_credit];
 
@@ -327,8 +328,7 @@ public class MainActivity extends AppCompatActivity {
                             case "DR":
                                 if (smsList.get(length - 1 - l).getMsgAmt() != "") {
                                     debit[i] = Integer.parseInt(smsList.get(length - 1 - l).getMsgAmt());
-                                    if (debit[i] > max)
-                                        max = debit[i];
+                                    debit_week[i] = getWeek(smsList.get(length - 1 - l).getDateLong());
                                     i++;
                                 }
                                 break;
@@ -349,7 +349,29 @@ public class MainActivity extends AppCompatActivity {
                                 }
                         }
                     }
-                    getBarChart(credit, debit, online, max);
+                    int o1 = 0;
+                    String s1 = debit_week[o1];
+                    List<Integer> newDebit = new ArrayList<Integer>();
+                    List<String> newDebit_week = new ArrayList<String>();
+                    newDebit.add(o1, 0);
+                    for (int m = 0; m < debit.length; m++) {
+                        if (debit_week[m].equals(s1)) {
+                            newDebit.set(o1, newDebit.get(o1) + debit[m]);
+                        } else {
+                            o1++;
+                            s1 = debit_week[m];
+                            newDebit.add(o1, newDebit.get(o1) + debit[m]);
+                            newDebit_week.add(o1, s1);
+                        }
+                    }
+                    int[] d = new int[newDebit.size()];
+                    for (int z = 0; z < newDebit.size(); z++) {
+                        d[z] = newDebit.get(z);
+                        if (d[z] > max)
+                            max = d[z];
+                    }
+
+                    getBarChart(credit, d, online, max);
                 } else {
                     Toast.makeText(MainActivity.this, "Nothing to displaying", Toast.LENGTH_SHORT).show();
                 }
@@ -392,6 +414,10 @@ public class MainActivity extends AppCompatActivity {
         return formatter.format(new Date(milliSeconds));
     }
 
+    public String getWeek(long milliSeconds) {
+        return "Week-" + new SimpleDateFormat("W").format(new Date(milliSeconds)) + " of " + new SimpleDateFormat("MMM").format(new Date(milliSeconds));
+    }
+
     public void getBarChart(int[] credit, int[] debit, int[] online, int max) {
         XYMultipleSeriesRenderer barChartRenderer = getBarChartRenderer();
         setBarChartSettings(barChartRenderer, max);
@@ -402,17 +428,17 @@ public class MainActivity extends AppCompatActivity {
     private XYMultipleSeriesDataset getBarDemoDataset(int[] credit, int[] debit, int[] online) {
         XYMultipleSeriesDataset barChartDataset = new XYMultipleSeriesDataset();
         CategorySeries firstSeries = new CategorySeries("Income");
-        for (int i = 0; i < length_credit; i++)
+        for (int i = 0; i < credit.length; i++)
             firstSeries.add(credit[i]);
         barChartDataset.addSeries(firstSeries.toXYSeries());
 
         CategorySeries secondSeries = new CategorySeries("Card Payment");
-        for (int i = 0; i < length_debit; i++)
+        for (int i = 0; i < debit.length; i++)
             secondSeries.add(debit[i]);
         barChartDataset.addSeries(secondSeries.toXYSeries());
 
         CategorySeries thirdSeries = new CategorySeries("Net Banking");
-        for (int i = 0; i < length_online; i++)
+        for (int i = 0; i < online.length; i++)
             thirdSeries.add(online[i]);
         barChartDataset.addSeries(thirdSeries.toXYSeries());
 
