@@ -19,7 +19,6 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.ViewHolder> {
         public TextView smsAmt;
         public TextView smsDate;
         public TextView smsBal;
-        public TextView smsAddress;
 
         public ViewHolder(View v) {
             super(v);
@@ -28,7 +27,6 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.ViewHolder> {
             smsAmt = (TextView) v.findViewById(R.id.smsAmt);
             smsDate = (TextView) v.findViewById(R.id.smsDate);
             smsBal = (TextView) v.findViewById(R.id.smsBal);
-            smsAddress = (TextView) v.findViewById(R.id.address);
         }
     }
 
@@ -50,7 +48,6 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.ViewHolder> {
         holder.smsAmt.setText("INR " + smsList.get(position).getMsgAmt());
         holder.smsDate.setText("Date: " + smsList.get(position).getFormatDate());
         holder.smsBal.setText(smsList.get(position).getMsgBal());
-        holder.smsAddress.setText(smsList.get(position).getMsgAddress());
     }
 
     @Override

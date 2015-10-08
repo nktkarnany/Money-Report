@@ -9,7 +9,6 @@ public class Sms implements Serializable {
     private String msgDate;
     private String formatDate;
     private String msgBal;
-    private String msgAddress;
 
 
     public Sms() {
@@ -30,6 +29,10 @@ public class Sms implements Serializable {
         return this.msgAmt;
     }
 
+    public Double getAmtDouble() {
+        return Double.parseDouble(this.msgAmt);
+    }
+
     public String getMsgDate() {
         return this.msgDate;
     }
@@ -40,14 +43,6 @@ public class Sms implements Serializable {
 
     public Double getBalDouble() {
         return Double.parseDouble(this.msgBal);
-    }
-
-    public String getMsgAddress() {
-        return this.msgAddress = msgAddress;
-    }
-
-    public void setMsgAddress(String msgAddress) {
-        this.msgAddress = msgAddress;
     }
 
     public void setMsgType(String msgType) {

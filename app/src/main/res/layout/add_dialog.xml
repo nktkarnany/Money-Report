@@ -30,7 +30,7 @@
             android:layout_weight="1"
             android:checked="true"
             android:padding="5dp"
-            android:text="Credit" />
+            android:text="Income" />
 
         <RadioButton
             android:id="@+id/debit"
@@ -39,7 +39,7 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:padding="5dp"
-            android:text="Debit" />
+            android:text="Expenses" />
 
         <RadioButton
             android:id="@+id/online"
@@ -48,7 +48,7 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:padding="5dp"
-            android:text="Net Bank" />
+            android:text="Credit Card" />
     </RadioGroup>
 
     <Button

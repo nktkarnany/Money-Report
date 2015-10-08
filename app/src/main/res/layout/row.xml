@@ -7,16 +7,6 @@
     android:padding="2dp">
 
     <TextView
-        android:id="@+id/address"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/smsType"
-        android:layout_centerHorizontal="true"
-        android:padding="5dp"
-        android:text="New Text"
-        android:textColor="#f00" />
-
-    <TextView
         android:id="@+id/smsType"
         style="@style/Base.TextAppearance.AppCompat"
         android:layout_width="wrap_content"

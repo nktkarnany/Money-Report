@@ -45,11 +45,7 @@ public class MainActivity extends AppCompatActivity {
     private List<Sms> smsList = new ArrayList<>();
 
     private String amt, type, balance;
-    private float bal;
-
-    private int length_debit = 0;
-    private int length_online = 0;
-    private int length_credit = 0;
+    private Float bal;
 
     RecyclerView report;
 
@@ -89,17 +85,6 @@ public class MainActivity extends AppCompatActivity {
             // object read is in the form of list<Sms> so iterate over the list to extract all Sms objects.
             for (Sms r : (List<Sms>) i.readObject()) {
                 smsList.add(r);
-                switch (r.getMsgType()) {
-                    case "DR":
-                        length_debit += 1;
-                        break;
-                    case "Net Bank":
-                        length_online += 1;
-                        break;
-                    case "CR":
-                        length_credit += 1;
-                        break;
-                }
             }
             i.close();
             f.close();
@@ -132,7 +117,6 @@ public class MainActivity extends AppCompatActivity {
                 String body = c.getString(c.getColumnIndexOrThrow("body"));
                 String t = "";
 
-                sms.setMsgAddress(body);
                 sms.setMsgDate(date);
                 sms.setFormatDate(getDate(Long.parseLong(date)));
 
@@ -140,7 +124,7 @@ public class MainActivity extends AppCompatActivity {
 
                 if (body.contains("debit") && (body.contains("bal") || body.contains("balance")) && !body.contains("recharge")) {
                     t = "DR";
-                } else if (body.contains("payment") && (!body.contains("bal") && !body.contains("balance")) && !body.contains("recharge")) {
+                } else if (body.contains("credit card") && !body.contains("payment") && !body.contains("recharge")) {
                     t = "Net Bank";
                 } else if (body.contains("credit") && ((body.contains("bal")) || (body.contains("balance"))) && !body.contains("recharge")) {
                     t = "CR";
@@ -159,7 +143,6 @@ public class MainActivity extends AppCompatActivity {
                         if (getAmount(body) != null) {
                             sms.setMsgBal(getAmount(body));
                             smsList.add(0, sms);
-                            length_debit += 1;
                             report.scrollToPosition(0);
                             adapter.notifyItemInserted(0);
                         } else {
@@ -177,15 +160,13 @@ public class MainActivity extends AppCompatActivity {
                             continue;
                         }
                         if (smsList.size() > 0) {
-                            sms.setMsgBal(Double.toString(smsList.get(0).getBalDouble() - Integer.parseInt(getAmount(body))));
+                            sms.setMsgBal(Double.toString(smsList.get(0).getBalDouble() - Double.parseDouble(getAmount(body))));
                             smsList.add(0, sms);
-                            length_online += 1;
                             report.scrollToPosition(0);
                             adapter.notifyItemInserted(0);
                         } else {
                             sms.setMsgBal(getAmount(body));
                             smsList.add(0, sms);
-                            length_online += 1;
                             report.scrollToPosition(0);
                             adapter.notifyItemInserted(0);
                         }
@@ -203,14 +184,12 @@ public class MainActivity extends AppCompatActivity {
                         if (getAmount(body) != null) {
                             sms.setMsgBal(getAmount(body));
                             smsList.add(0, sms);
-                            length_credit += 1;
                             report.scrollToPosition(0);
                             adapter.notifyItemInserted(0);
                         } else {
                             c.moveToPrevious();
                             continue;
                         }
-
                         break;
                 }
                 c.moveToPrevious();
@@ -273,7 +252,6 @@ public class MainActivity extends AppCompatActivity {
                         try {
                             if (selected == R.id.debit) {
                                 type = "DR";
-                                length_debit += 1;
                                 if (index >= 0) {
                                     balance = smsList.get(0).getMsgBal();
                                     bal = Float.parseFloat(balance) - Float.parseFloat(amt);
@@ -284,7 +262,6 @@ public class MainActivity extends AppCompatActivity {
                                 }
                             } else if (selected == R.id.credit) {
                                 type = "CR";
-                                length_credit += 1;
                                 if (index >= 0) {
                                     balance = smsList.get(0).getMsgBal();
                                     bal = Float.parseFloat(balance) + Float.parseFloat(amt);
@@ -295,7 +272,6 @@ public class MainActivity extends AppCompatActivity {
                                 }
                             } else if (selected == R.id.online) {
                                 type = "Net Bank";
-                                length_online += 1;
                                 if (index >= 0) {
                                     balance = smsList.get(0).getMsgBal();
                                     bal = Float.parseFloat(balance) - Float.parseFloat(amt);
@@ -323,130 +299,87 @@ public class MainActivity extends AppCompatActivity {
 
             case R.id.forward:
                 if (smsList.size() > 0) {
-                    double debit[] = new double[length_debit];
-                    String debit_week[] = new String[length_debit];
-                    double online[] = new double[length_online];
-                    String online_week[] = new String[length_online];
-                    double credit[] = new double[length_credit];
-                    String credit_week[] = new String[length_credit];
-
-                    int i = 0, j = 0, k = 0;
-                    boolean debit_flag = false, online_flag = false, credit_flag = false;
-                    double max = 0;
-                    int length = smsList.size();
-                    for (int l = 0; l < length; l++) {
-                        switch (smsList.get(length - 1 - l).getMsgType()) {
-                            case "DR":
-                                if (smsList.get(length - 1 - l).getMsgAmt() != "") {
-                                    debit[i] = Double.parseDouble(smsList.get(length - 1 - l).getMsgAmt());
-                                    debit_week[i] = getWeek(smsList.get(length - 1 - l).getDateLong());
-                                    debit_flag = true;
-                                    i++;
-                                }
-                                break;
-                            case "Net Bank":
-                                if (smsList.get(length - 1 - l).getMsgAmt() != "") {
-                                    online[j] = Double.parseDouble(smsList.get(length - 1 - l).getMsgAmt());
-                                    online_week[j] = getWeek(smsList.get(length - 1 - l).getDateLong());
-                                    online_flag = true;
-                                    j++;
-                                }
-                                break;
-                            case "CR":
-                                if (smsList.get(length - 1 - l).getMsgAmt() != "") {
-                                    credit[k] = Double.parseDouble(smsList.get(length - 1 - l).getMsgAmt());
-                                    credit_week[k] = getWeek(smsList.get(length - 1 - l).getDateLong());
-                                    credit_flag = true;
-                                    k++;
-                                }
-                        }
-                    }
 
                     List<Double> newDebit = new ArrayList<>();
                     newDebit.add(0, 0.0);
-                    double[] d = new double[newDebit.size()];
-                    List<String> newDebit_week = new ArrayList<>();
-                    newDebit_week.add(0, "");
-                    if (debit_flag) {
-                        int o1 = 0;
-                        String s1 = debit_week[o1];
-                        for (int m = 0; m < debit.length; m++) {
-                            if (debit_week[m].equals(s1)) {
-                                newDebit.set(o1, newDebit.get(o1) + debit[m]);
-                                newDebit_week.set(o1, s1);
-                            } else {
-                                o1++;
-                                s1 = debit_week[m];
-                                newDebit.add(o1, newDebit.get(o1) + debit[m]);
-                                newDebit_week.add(o1, s1);
-                            }
-                        }
-                        d = new double[newDebit.size()];
-                        for (int z = 0; z < newDebit.size(); z++) {
-                            d[z] = newDebit.get(z);
-                            if (d[z] > max)
-                                max = d[z];
-                        }
-                    }
-
                     List<Double> newOnline = new ArrayList<>();
                     newOnline.add(0, 0.0);
-                    double[] n = new double[newOnline.size()];
-                    if (online_flag) {
-                        int o2 = 0;
-                        String s2 = online_week[o2];
-                        for (int m = 0; m < online.length; m++) {
-                            if (online_week[m].equals(s2)) {
-                                newOnline.set(o2, newOnline.get(o2) + online[m]);
-                            } else {
-                                o2++;
-                                s2 = online_week[m];
-                                newOnline.add(o2, newOnline.get(o2) + online[m]);
-                            }
-                        }
-                        n = new double[newOnline.size()];
-                        for (int z = 0; z < newOnline.size(); z++) {
-                            n[z] = newOnline.get(z);
-                            if (n[z] > max)
-                                max = n[z];
-                        }
-                    }
-
                     List<Double> newCredit = new ArrayList<>();
                     newCredit.add(0, 0.0);
-                    double[] c = new double[newCredit.size()];
-                    if (credit_flag) {
-                        int o3 = 0;
-                        String s3 = credit_week[o3];
-                        for (int m = 0; m < credit.length; m++) {
-                            if (credit_week[m].equals(s3)) {
-                                newCredit.set(o3, newCredit.get(o3) + credit[m]);
-                            } else {
-                                o3++;
-                                s3 = online_week[m];
-                                newCredit.add(o3, newCredit.get(o3) + credit[m]);
+                    List<String> newWeek = new ArrayList<>();
+
+                    String week = getWeek(smsList.get(0).getDateLong());
+                    newWeek.add(0, week);
+                    int g = 0;
+                    for (Sms sms : smsList) {
+                        if (getWeek(sms.getDateLong()).equals(week)) {
+                            if (sms.getMsgType().equals("DR")) {
+                                newDebit.set(g, newDebit.get(g) + sms.getAmtDouble());
                             }
-                        }
-                        c = new double[newCredit.size()];
-                        for (int z = 0; z < newCredit.size(); z++) {
-                            c[z] = newCredit.get(z);
-                            if (c[z] > max)
-                                max = c[z];
+                            if (sms.getMsgType().equals("Net Bank")) {
+                                newOnline.set(g, newOnline.get(g) + sms.getAmtDouble());
+                            }
+                            if (sms.getMsgType().equals("CR")) {
+                                newCredit.set(g, newCredit.get(g) + sms.getAmtDouble());
+                            }
+                        } else {
+                            g++;
+                            newDebit.add(g, 0.0);
+                            newOnline.add(g, 0.0);
+                            newCredit.add(g, 0.0);
+                            if (sms.getMsgType().equals("DR"))
+                                newDebit.set(g, sms.getAmtDouble());
+                            if (sms.getMsgType().equals("Net Bank"))
+                                newOnline.set(g, sms.getAmtDouble());
+                            if (sms.getMsgType().equals("CR"))
+                                newCredit.set(g, sms.getAmtDouble());
+                            newWeek.add(g, getWeek(sms.getDateLong()));
+                            week = getWeek(sms.getDateLong());
                         }
                     }
 
-                    String[] week = new String[newDebit_week.size()];
-                    for (int z = 0; z < newDebit_week.size(); z++) {
-                        week[z] = newDebit_week.get(z);
+                    double max = 0;
+
+                    double[] d = new double[newDebit.size()];
+                    for (int z = 0; z < newDebit.size(); z++) {
+                        d[z] = newDebit.get(z);
+                        if (d[z] > max)
+                            max = d[z];
                     }
 
-                    getBarChart(c, d, n, (int) max, week);
+
+                    double[] n = new double[newOnline.size()];
+                    for (int z = 0; z < newOnline.size(); z++) {
+                        n[z] = newOnline.get(z);
+                        if (n[z] > max)
+                            max = n[z];
+                    }
+
+
+                    double[] c = new double[newCredit.size()];
+                    for (int z = 0; z < newCredit.size(); z++) {
+                        c[z] = newCredit.get(z);
+                        if (c[z] > max)
+                            max = c[z];
+                    }
+
+
+                    String[] w = new String[newWeek.size()];
+                    for (int z = 0; z < newWeek.size(); z++) {
+                        w[z] = newWeek.get(z);
+                    }
+
+                    getBarChart(c, d, n, (int) max, w);
                 } else {
                     Toast.makeText(MainActivity.this, "Nothing to displaying", Toast.LENGTH_SHORT).show();
                 }
                 break;
         }
-        return super.onOptionsItemSelected(item);
+
+        return super.
+
+                onOptionsItemSelected(item);
+
     }
 
     @Override
@@ -497,23 +430,23 @@ public class MainActivity extends AppCompatActivity {
     private XYMultipleSeriesDataset getBarDemoDataset(double[] credit, double[] debit, double[] online) {
         XYMultipleSeriesDataset barChartDataset = new XYMultipleSeriesDataset();
         CategorySeries firstSeries = new CategorySeries("Income");
-        for (int i = 0; i < credit.length; i++)
-            firstSeries.add(credit[i]);
+        for (double i : credit)
+            firstSeries.add(i);
         barChartDataset.addSeries(firstSeries.toXYSeries());
 
-        CategorySeries secondSeries = new CategorySeries("Card Payment");
-        for (int i = 0; i < debit.length; i++)
-            secondSeries.add(debit[i]);
+        CategorySeries secondSeries = new CategorySeries("Expenses");
+        for (double i : debit)
+            secondSeries.add(i);
         barChartDataset.addSeries(secondSeries.toXYSeries());
 
-        CategorySeries thirdSeries = new CategorySeries("Net Banking");
-        for (int i = 0; i < online.length; i++)
-            thirdSeries.add(online[i]);
+        CategorySeries thirdSeries = new CategorySeries("Credit Card");
+        for (double i : online)
+            thirdSeries.add(i);
         barChartDataset.addSeries(thirdSeries.toXYSeries());
 
         CategorySeries forthSeries = new CategorySeries("");
-        for (int i = 0; i < debit.length; i++)
-            forthSeries.add(debit[i]);
+        for (double i : debit)
+            forthSeries.add(i);
         barChartDataset.addSeries(forthSeries.toXYSeries());
 
         return barChartDataset;
@@ -526,19 +459,19 @@ public class MainActivity extends AppCompatActivity {
         renderer.setLegendHeight(120);
         renderer.setMargins(new int[]{30, 70, 30, 0});
         SimpleSeriesRenderer r = new SimpleSeriesRenderer();
-        r.setColor(Color.parseColor("#00ff00"));
+        r.setColor(Color.parseColor("#00E676"));
         r.setDisplayChartValues(true);
         r.setChartValuesTextSize(23);
         r.setChartValuesTextAlign(Paint.Align.RIGHT);
         renderer.addSeriesRenderer(r);
         r = new SimpleSeriesRenderer();
-        r.setColor(Color.parseColor("#ff0000"));
+        r.setColor(Color.parseColor("#FF3D00"));
         r.setDisplayChartValues(true);
         r.setChartValuesTextSize(23);
         r.setChartValuesTextAlign(Paint.Align.RIGHT);
         renderer.addSeriesRenderer(r);
         r = new SimpleSeriesRenderer();
-        r.setColor(Color.parseColor("#0000ff"));
+        r.setColor(Color.parseColor("#00B0FF"));
         r.setDisplayChartValues(true);
         r.setChartValuesTextSize(23);
         r.setChartValuesTextAlign(Paint.Align.RIGHT);
@@ -568,11 +501,13 @@ public class MainActivity extends AppCompatActivity {
         }
         renderer.setXLabels(0);
         renderer.setXAxisMin(0);
+        renderer.setXAxisMax(2);
+        renderer.setPanEnabled(true, false);
+        renderer.setShowGrid(true);
+        renderer.setGridColor(Color.LTGRAY);
         renderer.setBarWidth(80);
-        renderer.setBarSpacing(0.1f);
-        renderer.setXAxisMax(3);
         renderer.setYAxisMin(0);
-        renderer.setYAxisMax(max + 3000);
+        renderer.setYAxisMax(max + 5000);
     }
 
 }
