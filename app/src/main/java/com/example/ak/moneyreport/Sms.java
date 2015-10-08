@@ -38,8 +38,8 @@ public class Sms implements Serializable {
         return this.msgBal;
     }
 
-    public int getBalInt() {
-        return Integer.parseInt(this.msgBal);
+    public Double getBalDouble() {
+        return Double.parseDouble(this.msgBal);
     }
 
     public String getMsgAddress() {
