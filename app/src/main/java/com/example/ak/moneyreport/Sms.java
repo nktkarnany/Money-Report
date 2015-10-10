@@ -41,10 +41,6 @@ public class Sms implements Serializable {
         return this.msgBal;
     }
 
-    public Double getBalDouble() {
-        return Double.parseDouble(this.msgBal);
-    }
-
     public void setMsgType(String msgType) {
         this.msgType = msgType;
     }

@@ -4,34 +4,27 @@ import android.app.Dialog;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
-import android.graphics.Color;
-import android.graphics.Paint;
 import android.net.Uri;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.text.TextUtils;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.RadioGroup;
+import android.widget.Spinner;
 import android.widget.Toast;
-
-import org.achartengine.ChartFactory;
-import org.achartengine.chart.BarChart;
-import org.achartengine.model.CategorySeries;
-import org.achartengine.model.XYMultipleSeriesDataset;
-import org.achartengine.renderer.SimpleSeriesRenderer;
-import org.achartengine.renderer.XYMultipleSeriesRenderer;
 
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.io.Serializable;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -63,8 +56,7 @@ public class MainActivity extends AppCompatActivity {
 
     // variables to store type of transaction
     private String INCOME = "Income";
-    private String EXPENSES = "Expenses";
-    private String CREDIT_CARD = "Credit Card";
+    private String EXPENSES = "Personal Expenses";
 
     MyAdapter adapter;
 
@@ -144,15 +136,13 @@ public class MainActivity extends AppCompatActivity {
                 // some common keywords used in bank messages
                 if (body.contains("debit") && (body.contains("bal") || body.contains("balance")) && !body.contains("recharge")) {
                     t = EXPENSES;
-                } else if (body.contains("credit card") && !body.contains("payment") && !body.contains("recharge")) {
-                    t = CREDIT_CARD;
                 } else if (body.contains("credit") && ((body.contains("bal")) || (body.contains("balance"))) && !body.contains("recharge")) {
                     t = INCOME;
                 }
 
                 // switched according to the type to extract information from the message
                 switch (t) {
-                    case "Expenses":
+                    case "Personal Expenses":
                         sms.setMsgType(t);
                         // getAmount is a method which gives the amount using pattern and matcher
                         if (getAmount(body) != null) {
@@ -171,28 +161,6 @@ public class MainActivity extends AppCompatActivity {
                         } else {
                             c.moveToPrevious();
                             continue;
-                        }
-                        break;
-
-                    // for credit card type the amount is extracted and then the balance is calculated by subtracting the amount
-                    case "Credit Card":
-                        sms.setMsgType(t);
-                        if (getAmount(body) != null) {
-                            sms.setMsgAmt(getAmount(body));
-                        } else {
-                            c.moveToPrevious();
-                            continue;
-                        }
-                        if (smsList.size() > 0) {
-                            sms.setMsgBal(Double.toString(smsList.get(0).getBalDouble() - Double.parseDouble(getAmount(body))));
-                            smsList.add(0, sms);
-                            report.scrollToPosition(0);
-                            adapter.notifyItemInserted(0);
-                        } else {
-                            sms.setMsgBal(getAmount(body));
-                            smsList.add(0, sms);
-                            report.scrollToPosition(0);
-                            adapter.notifyItemInserted(0);
                         }
                         break;
 
@@ -262,10 +230,24 @@ public class MainActivity extends AppCompatActivity {
                 dialog.setContentView(R.layout.add_dialog);
                 dialog.setTitle("Add Transaction");
 
-                // radio button implementation for income, expenses and credit card
-                final RadioGroup rg = (RadioGroup) dialog.findViewById(R.id.radioGroup);
-
                 final EditText addAmt = (EditText) dialog.findViewById(R.id.addAmt);
+
+                final Spinner description = (Spinner) dialog.findViewById(R.id.description);
+                ArrayAdapter<CharSequence> desc_adapter = ArrayAdapter.createFromResource(this, R.array.desc_array, android.R.layout.simple_spinner_item);
+                desc_adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+                description.setAdapter(desc_adapter);
+                description.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                    @Override
+                    public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                        type = parent.getItemAtPosition(position).toString();
+                    }
+
+                    @Override
+                    public void onNothingSelected(AdapterView<?> parent) {
+                        type = parent.getItemAtPosition(0).toString();
+                    }
+                });
+
                 Button save = (Button) dialog.findViewById(R.id.save);
 
                 dialog.show();
@@ -283,10 +265,9 @@ public class MainActivity extends AppCompatActivity {
                         if (amt.trim().equals("")) {
                             amt = "0.0";
                         }
-                        int selected = rg.getCheckedRadioButtonId();
-                        try {
-                            if (selected == R.id.debit) {
-                                type = EXPENSES;
+
+                        switch (type) {
+                            case "Personal Expenses":
                                 // index will be zero if there are no messages in the list so balance will be equal to the amount
                                 if (index >= 0) {
                                     balance = smsList.get(0).getMsgBal();
@@ -296,8 +277,30 @@ public class MainActivity extends AppCompatActivity {
                                     // negative in case of expenses
                                     balance = "-" + amt;
                                 }
-                            } else if (selected == R.id.credit) {
-                                type = INCOME;
+                                break;
+                            case "Food":
+                                // index will be zero if there are no messages in the list so balance will be equal to the amount
+                                if (index >= 0) {
+                                    balance = smsList.get(0).getMsgBal();
+                                    bal = Float.parseFloat(balance) - Float.parseFloat(amt);
+                                    balance = Float.toString(bal);
+                                } else {
+                                    // negative in case of expenses
+                                    balance = "-" + amt;
+                                }
+                                break;
+                            case "Transport":
+                                // index will be zero if there are no messages in the list so balance will be equal to the amount
+                                if (index >= 0) {
+                                    balance = smsList.get(0).getMsgBal();
+                                    bal = Float.parseFloat(balance) - Float.parseFloat(amt);
+                                    balance = Float.toString(bal);
+                                } else {
+                                    // negative in case of expenses
+                                    balance = "-" + amt;
+                                }
+                                break;
+                            case "Salary":
                                 if (index >= 0) {
                                     balance = smsList.get(0).getMsgBal();
                                     bal = Float.parseFloat(balance) + Float.parseFloat(amt);
@@ -306,45 +309,41 @@ public class MainActivity extends AppCompatActivity {
                                     // positive in case of income
                                     balance = amt;
                                 }
-                            } else if (selected == R.id.online) {
-                                type = CREDIT_CARD;
+                                break;
+                            case "Income":
                                 if (index >= 0) {
                                     balance = smsList.get(0).getMsgBal();
-                                    bal = Float.parseFloat(balance) - Float.parseFloat(amt);
+                                    bal = Float.parseFloat(balance) + Float.parseFloat(amt);
                                     balance = Float.toString(bal);
                                 } else {
-                                    // negative in case of credit card
-                                    balance = "-" + amt;
+                                    // positive in case of income
+                                    balance = amt;
                                 }
-                            }
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                        } finally {
-                            // finally the sms object is added to the list
-                            // the date in this sms object is set ot the current date of the system
-                            long time = System.currentTimeMillis();
-                            Toast.makeText(MainActivity.this, "Transaction Added", Toast.LENGTH_SHORT).show();
-                            Sms s = new Sms(type, amt, Long.toString(time), balance);
-                            s.setFormatDate(getDate(time));
-                            smsList.add(0, s);
-                            report.scrollToPosition(0);
-                            adapter.notifyItemInserted(0);
-                            dialog.dismiss();
+                                break;
                         }
+                        // finally the sms object is added to the list
+                        // the date in this sms object is set ot the current date of the system
+                        long time = System.currentTimeMillis();
+                        Sms s = new Sms(type, amt, Long.toString(time), balance);
+                        s.setFormatDate(getDate(time));
+                        smsList.add(0, s);
+                        report.scrollToPosition(0);
+                        adapter.notifyItemInserted(0);
+                        dialog.dismiss();
+                        Toast.makeText(MainActivity.this, "Transaction Added", Toast.LENGTH_SHORT).show();
                     }
                 });
                 break;
 
             case R.id.forward:
-                // when forward action button is clicked the a bar chart is displayed whose values are calculated here
-                if (smsList.size() > 0) {
+                // when forward action button is clicked a bar chart is displayed whose values are calculated here
+                if (smsList.size() > 0)
 
+                {
                     // the arrays are first declared in list form because the length of different transactions can be different
                     // first variable in all list is 0.0
                     List<Double> newDebit = new ArrayList<>();
                     newDebit.add(0, 0.0);
-                    List<Double> newOnline = new ArrayList<>();
-                    newOnline.add(0, 0.0);
                     List<Double> newCredit = new ArrayList<>();
                     newCredit.add(0, 0.0);
                     List<String> newWeek = new ArrayList<>();
@@ -363,21 +362,15 @@ public class MainActivity extends AppCompatActivity {
                             if (sms.getMsgType().equals(EXPENSES)) {
                                 newDebit.set(g, newDebit.get(g) + sms.getAmtDouble());
                             }
-                            if (sms.getMsgType().equals(CREDIT_CARD)) {
-                                newOnline.set(g, newOnline.get(g) + sms.getAmtDouble());
-                            }
                             if (sms.getMsgType().equals(INCOME)) {
                                 newCredit.set(g, newCredit.get(g) + sms.getAmtDouble());
                             }
                         } else {
                             g++;
                             newDebit.add(g, 0.0);
-                            newOnline.add(g, 0.0);
                             newCredit.add(g, 0.0);
                             if (sms.getMsgType().equals(EXPENSES))
                                 newDebit.set(g, sms.getAmtDouble());
-                            if (sms.getMsgType().equals(CREDIT_CARD))
-                                newOnline.set(g, sms.getAmtDouble());
                             if (sms.getMsgType().equals(INCOME))
                                 newCredit.set(g, sms.getAmtDouble());
                             newWeek.add(g, getWeek(sms.getDateLong()));
@@ -397,14 +390,6 @@ public class MainActivity extends AppCompatActivity {
                     }
 
 
-                    double[] n = new double[newOnline.size()];
-                    for (int z = 0; z < newOnline.size(); z++) {
-                        n[z] = newOnline.get(z);
-                        if (n[z] > max)
-                            max = n[z];
-                    }
-
-
                     double[] c = new double[newCredit.size()];
                     for (int z = 0; z < newCredit.size(); z++) {
                         c[z] = newCredit.get(z);
@@ -418,7 +403,11 @@ public class MainActivity extends AppCompatActivity {
                         w[z] = newWeek.get(z);
                     }
 
-                    getBarChart(c, d, n, (int) max, w);
+                    Intent i = new Intent(MainActivity.this, report.class);
+                    Bundle b = new Bundle();
+                    b.putSerializable("SMS", (Serializable) smsList);
+                    i.putExtra("DATA", b);
+                    startActivity(i);
                 } else {
                     // if no messages are there then a toast is displayed
                     Toast.makeText(MainActivity.this, "Nothing to displaying", Toast.LENGTH_SHORT).show();
@@ -466,98 +455,4 @@ public class MainActivity extends AppCompatActivity {
         // example: Week-4 of Oct
         return "Week-" + new SimpleDateFormat("W").format(new Date(milliSeconds)) + " of " + new SimpleDateFormat("MMM").format(new Date(milliSeconds));
     }
-
-    // some methods used to display the bar chart
-    public void getBarChart(double[] credit, double[] debit, double[] online, int max, String[] week) {
-        XYMultipleSeriesRenderer barChartRenderer = getBarChartRenderer();
-        setBarChartSettings(barChartRenderer, max, week);
-        Intent intent = ChartFactory.getBarChartIntent(this, getBarDemoDataset(credit, debit, online), barChartRenderer, BarChart.Type.DEFAULT);
-        startActivity(intent);
-    }
-
-    private XYMultipleSeriesDataset getBarDemoDataset(double[] credit, double[] debit, double[] online) {
-        XYMultipleSeriesDataset barChartDataset = new XYMultipleSeriesDataset();
-        CategorySeries firstSeries = new CategorySeries(INCOME);
-        for (double i : credit)
-            firstSeries.add(i);
-        barChartDataset.addSeries(firstSeries.toXYSeries());
-
-        CategorySeries secondSeries = new CategorySeries(EXPENSES);
-        for (double i : debit)
-            secondSeries.add(i);
-        barChartDataset.addSeries(secondSeries.toXYSeries());
-
-        CategorySeries thirdSeries = new CategorySeries(CREDIT_CARD);
-        for (double i : online)
-            thirdSeries.add(i);
-        barChartDataset.addSeries(thirdSeries.toXYSeries());
-
-        // this bar chart is displayed to show a gap in between the series
-        // its color is white so it is not visible
-        CategorySeries forthSeries = new CategorySeries("");
-        for (double i : debit)
-            forthSeries.add(i);
-        barChartDataset.addSeries(forthSeries.toXYSeries());
-
-        return barChartDataset;
-    }
-
-    public XYMultipleSeriesRenderer getBarChartRenderer() {
-        XYMultipleSeriesRenderer renderer = new XYMultipleSeriesRenderer();
-        renderer.setLabelsTextSize(25);
-        renderer.setLegendTextSize(30);
-        renderer.setLegendHeight(120);
-        renderer.setMargins(new int[]{30, 70, 30, 0});
-        SimpleSeriesRenderer r = new SimpleSeriesRenderer();
-        r.setColor(Color.parseColor("#00E676"));
-        r.setDisplayChartValues(true);
-        r.setChartValuesTextSize(23);
-        r.setChartValuesTextAlign(Paint.Align.RIGHT);
-        renderer.addSeriesRenderer(r);
-        r = new SimpleSeriesRenderer();
-        r.setColor(Color.parseColor("#FF3D00"));
-        r.setDisplayChartValues(true);
-        r.setChartValuesTextSize(23);
-        r.setChartValuesTextAlign(Paint.Align.RIGHT);
-        renderer.addSeriesRenderer(r);
-        r = new SimpleSeriesRenderer();
-        r.setColor(Color.parseColor("#00B0FF"));
-        r.setDisplayChartValues(true);
-        r.setChartValuesTextSize(23);
-        r.setChartValuesTextAlign(Paint.Align.RIGHT);
-        renderer.addSeriesRenderer(r);
-        r = new SimpleSeriesRenderer();
-        r.setColor(Color.parseColor("#ffffff"));
-        renderer.addSeriesRenderer(r);
-        return renderer;
-    }
-
-    private void setBarChartSettings(XYMultipleSeriesRenderer renderer, int max, String[] week) {
-        renderer.setChartTitle("Transactions Chart");
-        renderer.setChartTitleTextSize(40);
-        renderer.setXTitle("");
-        renderer.setYTitle("Sum of transactions (INR)");
-        renderer.setAxisTitleTextSize(30);
-        renderer.setApplyBackgroundColor(true);
-        renderer.setAxesColor(Color.BLACK);
-        renderer.setLabelsColor(Color.BLACK);
-        renderer.setXLabelsColor(Color.BLACK);
-        renderer.setYLabelsColor(0, Color.BLACK);
-        renderer.setBackgroundColor(Color.WHITE);
-        renderer.setMarginsColor(Color.WHITE);
-        for (int i = 0; i < week.length; i++) {
-            Log.e(TAG, "week no:" + week[i]);
-            renderer.addXTextLabel(i + 1, week[i]);
-        }
-        renderer.setXLabels(0);
-        renderer.setXAxisMin(0);
-        renderer.setXAxisMax(2);
-        renderer.setPanEnabled(true, false);
-        renderer.setShowGrid(true);
-        renderer.setGridColor(Color.LTGRAY);
-        renderer.setBarWidth(80);
-        renderer.setYAxisMin(0);
-        renderer.setYAxisMax(max + 5000);
-    }
-
 }

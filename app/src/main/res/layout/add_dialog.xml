@@ -14,42 +14,11 @@
         android:inputType="number"
         android:padding="20dp" />
 
-    <RadioGroup
-        android:id="@+id/radioGroup"
+    <Spinner
+        android:id="@+id/description"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:padding="10dp"
-        android:weightSum="3">
-
-        <RadioButton
-            android:id="@+id/credit"
-            style="@style/Base.Widget.AppCompat.CompoundButton.RadioButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:checked="true"
-            android:padding="5dp"
-            android:text="Income" />
-
-        <RadioButton
-            android:id="@+id/debit"
-            style="@style/Base.Widget.AppCompat.CompoundButton.RadioButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:padding="5dp"
-            android:text="Expenses" />
-
-        <RadioButton
-            android:id="@+id/online"
-            style="@style/Base.Widget.AppCompat.CompoundButton.RadioButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:padding="5dp"
-            android:text="Credit Card" />
-    </RadioGroup>
+        android:padding="10dp"></Spinner>
 
     <Button
         android:id="@+id/save"
