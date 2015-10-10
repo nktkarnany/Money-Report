@@ -337,72 +337,7 @@ public class MainActivity extends AppCompatActivity {
 
             case R.id.forward:
                 // when forward action button is clicked a bar chart is displayed whose values are calculated here
-                if (smsList.size() > 0)
-
-                {
-                    // the arrays are first declared in list form because the length of different transactions can be different
-                    // first variable in all list is 0.0
-                    List<Double> newDebit = new ArrayList<>();
-                    newDebit.add(0, 0.0);
-                    List<Double> newCredit = new ArrayList<>();
-                    newCredit.add(0, 0.0);
-                    List<String> newWeek = new ArrayList<>();
-
-                    // the week of the message is calculated by calling getWeek method
-                    // In this for loop all the messages are read and sorted according to there type
-                    // then if the week is same then they are added to the same amount
-                    // is week changes then the position of the list is incremented by one.
-                    // It is designed in such a way that in any week if suppose credit card
-                    // transactions are zero then it will be zero it will not be empty.
-                    String week = getWeek(smsList.get(0).getDateLong());
-                    newWeek.add(0, week);
-                    int g = 0;
-                    for (Sms sms : smsList) {
-                        if (getWeek(sms.getDateLong()).equals(week)) {
-                            if (sms.getMsgType().equals(EXPENSES)) {
-                                newDebit.set(g, newDebit.get(g) + sms.getAmtDouble());
-                            }
-                            if (sms.getMsgType().equals(INCOME)) {
-                                newCredit.set(g, newCredit.get(g) + sms.getAmtDouble());
-                            }
-                        } else {
-                            g++;
-                            newDebit.add(g, 0.0);
-                            newCredit.add(g, 0.0);
-                            if (sms.getMsgType().equals(EXPENSES))
-                                newDebit.set(g, sms.getAmtDouble());
-                            if (sms.getMsgType().equals(INCOME))
-                                newCredit.set(g, sms.getAmtDouble());
-                            newWeek.add(g, getWeek(sms.getDateLong()));
-                            week = getWeek(sms.getDateLong());
-                        }
-                    }
-
-                    double max = 0;
-
-                    // here then these lists are converted into arrays and passed to the graph
-                    // a max value is calculated for the max value of y-axis so that the graph will be consistent
-                    double[] d = new double[newDebit.size()];
-                    for (int z = 0; z < newDebit.size(); z++) {
-                        d[z] = newDebit.get(z);
-                        if (d[z] > max)
-                            max = d[z];
-                    }
-
-
-                    double[] c = new double[newCredit.size()];
-                    for (int z = 0; z < newCredit.size(); z++) {
-                        c[z] = newCredit.get(z);
-                        if (c[z] > max)
-                            max = c[z];
-                    }
-
-
-                    String[] w = new String[newWeek.size()];
-                    for (int z = 0; z < newWeek.size(); z++) {
-                        w[z] = newWeek.get(z);
-                    }
-
+                if (smsList.size() > 0) {
                     Intent i = new Intent(MainActivity.this, report.class);
                     Bundle b = new Bundle();
                     b.putSerializable("SMS", (Serializable) smsList);

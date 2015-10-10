@@ -1,8 +1,11 @@
 package com.example.ak.moneyreport;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -24,7 +27,14 @@ import java.util.List;
 public class report extends Activity {
 
     GraphView graph;
+    RecyclerView recyclerView;
+    ReportAdapter reportAdapter;
     List<Sms> smsList = new ArrayList<>();
+    List<ReportItem> adapterList = new ArrayList<>();
+    List<ReportItem> reportList = new ArrayList<>();
+    List<List<ReportItem>> itemList = new ArrayList<>();
+
+    Context context = this;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -32,6 +42,12 @@ public class report extends Activity {
         setContentView(R.layout.report);
 
         graph = (GraphView) findViewById(R.id.graph);
+
+        recyclerView = (RecyclerView) findViewById(R.id.report_list);
+        recyclerView.setHasFixedSize(true);
+        recyclerView.setLayoutManager(new LinearLayoutManager(this));
+        reportAdapter = new ReportAdapter(adapterList, context);
+        recyclerView.setAdapter(reportAdapter);
 
         Intent intent = getIntent();
         Bundle bundle = intent.getBundleExtra("DATA");
@@ -57,23 +73,52 @@ public class report extends Activity {
                 day = getDay(sms.getDateLong());
             }
         }
-        Log.e("Log Debug", Integer.toString(expenseDay.size()));
+
+        String day1 = getDay(smsList.get(0).getDateLong());
+        int j = 0, l = 0;
+        int size = 0;
+        for (Sms sms : smsList) {
+            if (getDay(sms.getDateLong()).equals(day1)) {
+                if (sms.getMsgType().equals("Personal Expenses") || sms.getMsgType().equals("Food") || sms.getMsgType().equals("Transport")) {
+                    reportList.add(j, new ReportItem(sms.getMsgType(), sms.getMsgAmt(), sms.getDateLong()));
+                    j++;
+                    if (size == smsList.size() - 1) {
+                        itemList.add(l, reportList);
+                    }
+                }
+            } else {
+                itemList.add(l, reportList);
+                l++;
+                reportList = new ArrayList<>();
+                j = 0;
+                if (sms.getMsgType().equals("Personal Expenses") || sms.getMsgType().equals("Food") || sms.getMsgType().equals("Transport")) {
+                    reportList.add(j, new ReportItem(sms.getMsgType(), sms.getMsgAmt(), sms.getDateLong()));
+                    j++;
+                    if (size == smsList.size() - 1) {
+                        itemList.add(l, reportList);
+                    }
+                }
+                Log.e("Log Debug", day1);
+                day1 = getDay(sms.getDateLong());
+                Log.e("Log Debug", day1);
+            }
+            size++;
+        }
 
         double[] e = new double[expenses.size()];
         for (int z = 0; z < expenses.size(); z++) {
-            e[z] = expenses.get(expenses.size() - 1 - z);
+            e[z] = expenses.get(z);
         }
 
         String[] w = new String[expenseDay.size()];
         for (int z = 0; z < expenseDay.size(); z++) {
-            w[z] = new SimpleDateFormat("dd/MM").format(new Date(expenseDay.get(expenseDay.size() - 1 - z)));
+            w[z] = new SimpleDateFormat("dd/MM").format(new Date(expenseDay.get(z)));
         }
 
         if (w.length > 1) {
             DataPoint[] dataPoints = new DataPoint[expenses.size()];
             for (int k = 0; k < expenses.size(); k++) {
                 dataPoints[k] = new DataPoint(k, e[k]);
-                Log.e("Log Debug", w[k].toString());
             }
 
             BarGraphSeries<DataPoint> series = new BarGraphSeries<>(dataPoints);
@@ -82,7 +127,9 @@ public class report extends Activity {
             series.setOnDataPointTapListener(new OnDataPointTapListener() {
                 @Override
                 public void onTap(Series series, DataPointInterface dataPoint) {
-                    Toast.makeText(report.this, "Tapped on:" + dataPoint, Toast.LENGTH_SHORT).show();
+                    adapterList.clear();
+                    adapterList.addAll(itemList.get((int) dataPoint.getX()));
+                    reportAdapter.notifyDataSetChanged();
                 }
             });
 
