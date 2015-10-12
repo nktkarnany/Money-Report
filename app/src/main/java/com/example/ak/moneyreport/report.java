@@ -7,6 +7,10 @@ import android.graphics.Color;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -32,6 +36,8 @@ public class report extends Activity {
     List<ReportItem> adapterList = new ArrayList<>();
     List<ReportItem> reportList = new ArrayList<>();
     List<List<ReportItem>> itemList = new ArrayList<>();
+    TextView itemDate;
+    Spinner options;
 
     Context context = this;
 
@@ -48,11 +54,27 @@ public class report extends Activity {
         reportAdapter = new ReportAdapter(adapterList, context);
         recyclerView.setAdapter(reportAdapter);
 
-        final TextView itemDate = (TextView) findViewById(R.id.itemDate);
+        itemDate = (TextView) findViewById(R.id.itemDate);
+        options = (Spinner) findViewById(R.id.graphOptions);
+        ArrayAdapter<CharSequence> options_adapter = ArrayAdapter.createFromResource(this, R.array.options, android.R.layout.simple_spinner_item);
+        options_adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        options.setAdapter(options_adapter);
 
         Intent intent = getIntent();
         Bundle bundle = intent.getBundleExtra("DATA");
         smsList = (ArrayList<Sms>) bundle.getSerializable("SMS");
+
+        options.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                Toast.makeText(report.this, "Selected", Toast.LENGTH_SHORT).show();
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+                Toast.makeText(report.this, "First Selected", Toast.LENGTH_SHORT).show();
+            }
+        });
 
         List<Double> expenses = new ArrayList<>();
         expenses.add(0, 0.0);
@@ -120,54 +142,57 @@ public class report extends Activity {
         }
 
         if (w.length > 1) {
-            int length = expenses.size();
-            if (length > 6) {
-                length = 6;
-            }
-            DataPoint[] dataPoints = new DataPoint[length];
-            for (int k = 0; k < length; k++) {
-                dataPoints[k] = new DataPoint(k, e[k]);
-                if (e[k] > max) {
-                    max = e[k];
-                }
-            }
-
-            BarGraphSeries<DataPoint> series = new BarGraphSeries<>(dataPoints);
-            graph.addSeries(series);
-            series.setColor(Color.parseColor("#e51c23"));
-            series.setSpacing(10);
-            series.setValuesOnTopColor(Color.RED);
-            series.setDrawValuesOnTop(true);
-
-            series.setOnDataPointTapListener(new OnDataPointTapListener() {
-                @Override
-                public void onTap(Series series, DataPointInterface dataPoint) {
-                    adapterList.clear();
-                    adapterList.addAll(itemList.get((int) dataPoint.getX()));
-                    itemDate.setText(itemList.get((int) dataPoint.getX()).get(0).getReportDate());
-                    reportAdapter.notifyDataSetChanged();
-                }
-            });
-
-            graph.setTitle("Expense Chart");
-            graph.setTitleTextSize(40);
-            graph.setTitleColor(Color.parseColor("#e51c23"));
-
-            graph.getViewport().setXAxisBoundsManual(true);
-            graph.getViewport().setMinX(0);
-            graph.getViewport().setMaxX(length - 1);
-
-            graph.getViewport().setScrollable(true);
-            graph.getViewport().setMinY(0);
-            graph.getViewport().setMaxY(max + 5000);
-
-            StaticLabelsFormatter s = new StaticLabelsFormatter(graph);
-            s.setHorizontalLabels(w);
-            graph.getGridLabelRenderer().setLabelFormatter(s);
+            DrawGraph(w.length, max, e, w);
         } else {
             Toast.makeText(report.this, "Not Enough data to display", Toast.LENGTH_SHORT).show();
         }
 
+    }
+
+    private void DrawGraph(int length, double max, double[] e, String[] w) {
+        if (length > 6) {
+            length = 6;
+        }
+        DataPoint[] dataPoints = new DataPoint[length];
+        for (int k = 0; k < length; k++) {
+            dataPoints[k] = new DataPoint(k, e[k]);
+            if (e[k] > max) {
+                max = e[k];
+            }
+        }
+
+        BarGraphSeries<DataPoint> series = new BarGraphSeries<>(dataPoints);
+        graph.addSeries(series);
+        series.setColor(Color.parseColor("#e51c23"));
+        series.setSpacing(10);
+        series.setValuesOnTopColor(Color.RED);
+        series.setDrawValuesOnTop(true);
+
+        series.setOnDataPointTapListener(new OnDataPointTapListener() {
+            @Override
+            public void onTap(Series series, DataPointInterface dataPoint) {
+                adapterList.clear();
+                adapterList.addAll(itemList.get((int) dataPoint.getX()));
+                itemDate.setText(itemList.get((int) dataPoint.getX()).get(0).getReportDate());
+                reportAdapter.notifyDataSetChanged();
+            }
+        });
+
+        graph.setTitle("Expense Chart");
+        graph.setTitleTextSize(40);
+        graph.setTitleColor(Color.parseColor("#e51c23"));
+
+        graph.getViewport().setXAxisBoundsManual(true);
+        graph.getViewport().setMinX(0);
+        graph.getViewport().setMaxX(length - 1);
+
+        graph.getViewport().setScrollable(true);
+        graph.getViewport().setMinY(0);
+        graph.getViewport().setMaxY(max + 5000);
+
+        StaticLabelsFormatter s = new StaticLabelsFormatter(graph);
+        s.setHorizontalLabels(w);
+        graph.getGridLabelRenderer().setLabelFormatter(s);
     }
 
     public String getDay(long milliSeconds) {
