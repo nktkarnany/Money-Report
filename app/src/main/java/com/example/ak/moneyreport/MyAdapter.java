@@ -2,6 +2,7 @@ package com.example.ak.moneyreport;
 
 import android.content.Context;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.helper.ItemTouchHelper;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -34,6 +35,8 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.ViewHolder> {
         this.smsList = smsList;
         this.context = context;
     }
+
+    
 
     @Override
     public ViewHolder onCreateViewHolder(ViewGroup parent, int i) {

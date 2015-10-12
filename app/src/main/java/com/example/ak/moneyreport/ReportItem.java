@@ -30,4 +30,8 @@ public class ReportItem {
     public String getReportTime() {
         return new SimpleDateFormat("HH:mm").format(new Date(this.longTime));
     }
+
+    public String getReportDate() {
+        return new SimpleDateFormat("d/MMM/yyyy").format(new Date(this.longTime));
+    }
 }

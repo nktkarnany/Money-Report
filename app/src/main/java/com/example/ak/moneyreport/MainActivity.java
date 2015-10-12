@@ -9,6 +9,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.helper.ItemTouchHelper;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -80,6 +81,21 @@ public class MainActivity extends AppCompatActivity {
                 readMessages();
             }
         });
+
+        ItemTouchHelper.SimpleCallback simpleCallback = new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT) {
+            @Override
+            public boolean onMove(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder, RecyclerView.ViewHolder target) {
+                return false;
+            }
+
+            @Override
+            public void onSwiped(RecyclerView.ViewHolder viewHolder, int direction) {
+
+            }
+        };
+
+        ItemTouchHelper itemTouchHelper = new ItemTouchHelper(simpleCallback);
+        itemTouchHelper.attachToRecyclerView(report);
 
         try {
             // file input stream is used to open a file for reading
@@ -384,10 +400,5 @@ public class MainActivity extends AppCompatActivity {
         // Create a DateFormatter object for displaying date in specified format.
         SimpleDateFormat formatter = new SimpleDateFormat("yyyy/MM/dd HH:mm");
         return formatter.format(new Date(milliSeconds));
-    }
-
-    public String getWeek(long milliSeconds) {
-        // example: Week-4 of Oct
-        return "Week-" + new SimpleDateFormat("W").format(new Date(milliSeconds)) + " of " + new SimpleDateFormat("MMM").format(new Date(milliSeconds));
     }
 }
