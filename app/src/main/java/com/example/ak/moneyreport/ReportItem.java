@@ -9,10 +9,6 @@ public class ReportItem {
     private String reportAmt;
     private Long longTime;
 
-    public ReportItem() {
-
-    }
-
     public ReportItem(String reportType, String reportAmt, Long longTime) {
         this.reportType = reportType;
         this.reportAmt = reportAmt;
@@ -33,5 +29,9 @@ public class ReportItem {
 
     public String getReportDate() {
         return new SimpleDateFormat("d/MMM/yyyy").format(new Date(this.longTime));
+    }
+
+    public String getReportWeek() {
+        return "Week-" + new SimpleDateFormat("W").format(new Date(this.longTime)) + " of " + new SimpleDateFormat("MMM").format(new Date(this.longTime));
     }
 }
