@@ -38,6 +38,7 @@ public class report extends Activity {
     List<List<ReportItem>> itemList = new ArrayList<>();
     TextView itemDate;
     Spinner options;
+    String optionSelected;
 
     Context context = this;
 
@@ -67,61 +68,57 @@ public class report extends Activity {
         options.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                Toast.makeText(report.this, "Selected", Toast.LENGTH_SHORT).show();
+                switch (parent.getItemAtPosition(position).toString()) {
+                    case "Daily":
+                        Toast.makeText(report.this, "Daily Selected", Toast.LENGTH_SHORT).show();
+                        break;
+                    case "Weekly":
+                        Toast.makeText(report.this, "Weekly Selected", Toast.LENGTH_SHORT).show();
+                        break;
+                    case "Monthly":
+                        Toast.makeText(report.this, "Monthly Selected", Toast.LENGTH_SHORT).show();
+                        break;
+                }
             }
 
             @Override
             public void onNothingSelected(AdapterView<?> parent) {
-                Toast.makeText(report.this, "First Selected", Toast.LENGTH_SHORT).show();
+                optionSelected = parent.getItemAtPosition(0).toString();
             }
         });
+
 
         List<Double> expenses = new ArrayList<>();
         expenses.add(0, 0.0);
         List<Long> expenseDay = new ArrayList<>();
-        String day = getDay(smsList.get(0).getDateLong());
+        String day = smsList.get(0).getDay();
         expenseDay.add(0, smsList.get(0).getDateLong());
         int i = 0;
-        for (Sms sms : smsList) {
-            if (getDay(sms.getDateLong()).equals(day)) {
-                if (sms.getMsgType().equals("Personal Expenses") || sms.getMsgType().equals("Food") || sms.getMsgType().equals("Transport")) {
-                    expenses.set(i, expenses.get(i) + sms.getAmtDouble());
-                }
-            } else {
-                i++;
-                expenses.add(i, 0.0);
-                if (sms.getMsgType().equals("Personal Expenses") || sms.getMsgType().equals("Food") || sms.getMsgType().equals("Transport"))
-                    expenses.set(i, sms.getAmtDouble());
-                expenseDay.add(i, sms.getDateLong());
-                day = getDay(sms.getDateLong());
-            }
-        }
-
-        String day1 = getDay(smsList.get(0).getDateLong());
         int j = 0, l = 0;
         int size = 0;
         for (Sms sms : smsList) {
-            if (getDay(sms.getDateLong()).equals(day1)) {
-                if (sms.getMsgType().equals("Personal Expenses") || sms.getMsgType().equals("Food") || sms.getMsgType().equals("Transport")) {
-                    reportList.add(j, new ReportItem(sms.getMsgType(), sms.getMsgAmt(), sms.getDateLong()));
-                    j++;
-                    if (size == smsList.size() - 1) {
-                        itemList.add(l, reportList);
-                    }
+            if (sms.getDay().equals(day)) {
+                expenses.set(i, expenses.get(i) + sms.getAmtDouble());
+                reportList.add(j, new ReportItem(sms.getMsgType(), sms.getMsgAmt(), sms.getDateLong()));
+                j++;
+                if (size == smsList.size() - 1) {
+                    itemList.add(l, reportList);
                 }
             } else {
+                i++;
+                expenses.add(i, sms.getAmtDouble());
+                expenseDay.add(i, sms.getDateLong());
+
                 itemList.add(l, reportList);
                 l++;
                 reportList = new ArrayList<>();
                 j = 0;
-                if (sms.getMsgType().equals("Personal Expenses") || sms.getMsgType().equals("Food") || sms.getMsgType().equals("Transport")) {
-                    reportList.add(j, new ReportItem(sms.getMsgType(), sms.getMsgAmt(), sms.getDateLong()));
-                    j++;
-                    if (size == smsList.size() - 1) {
-                        itemList.add(l, reportList);
-                    }
+                reportList.add(j, new ReportItem(sms.getMsgType(), sms.getMsgAmt(), sms.getDateLong()));
+                j++;
+                if (size == smsList.size() - 1) {
+                    itemList.add(l, reportList);
                 }
-                day1 = getDay(sms.getDateLong());
+                day = sms.getDay();
             }
             size++;
         }
@@ -186,7 +183,6 @@ public class report extends Activity {
         graph.getViewport().setMinX(0);
         graph.getViewport().setMaxX(length - 1);
 
-        graph.getViewport().setScrollable(true);
         graph.getViewport().setMinY(0);
         graph.getViewport().setMaxY(max + 5000);
 
@@ -195,7 +191,11 @@ public class report extends Activity {
         graph.getGridLabelRenderer().setLabelFormatter(s);
     }
 
-    public String getDay(long milliSeconds) {
-        return new SimpleDateFormat("dd/MM").format(new Date(milliSeconds));
+    public String getWeek(long milliSeconds) {
+        return "Week:" + new SimpleDateFormat("W").format(new Date(milliSeconds)) + " of " + new SimpleDateFormat("MMM").format(new Date(milliSeconds));
+    }
+
+    public String getMonth(long milliSeconds) {
+        return new SimpleDateFormat("MMM").format(new Date(milliSeconds)) + "'" + new SimpleDateFormat("yy").format(new Date(milliSeconds));
     }
 }

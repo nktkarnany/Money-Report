@@ -1,6 +1,8 @@
 package com.example.ak.moneyreport;
 
 import java.io.Serializable;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 public class Sms implements Serializable {
 
@@ -67,5 +69,17 @@ public class Sms implements Serializable {
 
     public void setFormatDate(String formatDate) {
         this.formatDate = formatDate;
+    }
+
+    public String getDay() {
+        return new SimpleDateFormat("dd/MM").format(new Date(Long.parseLong(this.msgDate)));
+    }
+
+    public String getWeek() {
+        return "Week:" + new SimpleDateFormat("W").format(new Date(Long.parseLong(this.msgDate))) + " of " + new SimpleDateFormat("MMM").format(new Date(Long.parseLong(this.msgDate)));
+    }
+
+    public String getMonth() {
+        return new SimpleDateFormat("MMM").format(new Date(Long.parseLong(this.msgDate))) + "'" + new SimpleDateFormat("yy").format(new Date(Long.parseLong(this.msgDate)));
     }
 }

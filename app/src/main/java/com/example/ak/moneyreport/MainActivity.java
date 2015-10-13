@@ -354,6 +354,15 @@ public class MainActivity extends AppCompatActivity {
             case R.id.forward:
                 // when forward action button is clicked a bar chart is displayed whose values are calculated here
                 if (smsList.size() > 0) {
+
+                    List<Sms> smsList1 = new ArrayList<>();
+
+                    for (Sms s : smsList) {
+                        if (s.getMsgType().equals("Personal Expenses") || s.getMsgType().equals("Food") || s.getMsgType().equals("Transport")) {
+                            smsList1.add(s);
+                        }
+                    }
+
                     Intent i = new Intent(MainActivity.this, report.class);
                     Bundle b = new Bundle();
                     b.putSerializable("SMS", (Serializable) smsList);
