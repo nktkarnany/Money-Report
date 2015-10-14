@@ -71,6 +71,9 @@ public class report extends Activity {
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 switch (parent.getItemAtPosition(position).toString()) {
                     case "Daily":
+                        adapterList.clear();
+                        reportAdapter.notifyDataSetChanged();
+                        graph.removeAllSeries();
                         reportList = new ArrayList<>();
                         itemList = new ArrayList<>();
                         List<Double> expenses1 = new ArrayList<>();
@@ -78,58 +81,43 @@ public class report extends Activity {
                         List<Long> expenseDay = new ArrayList<>();
                         String day = smsList.get(0).getDay();
                         expenseDay.add(0, smsList.get(0).getDateLong());
-                        int i = 0;
-                        int j = 0, l = 0;
-                        int size = 0;
+                        int i = 0, j = 0, size = 0;
                         for (Sms sms : smsList) {
                             if (sms.getDay().equals(day)) {
                                 expenses1.set(i, expenses1.get(i) + sms.getAmtDouble());
-                                reportList.add(j, new ReportItem(sms.getMsgType(), sms.getMsgAmt(), sms.getDateLong()));
+                                reportList.add(j, new ReportItem(sms.getMsgType(), sms.getMsgAmt(), sms.getDateLong(), "Daily"));
                                 j++;
                                 if (size == smsList.size() - 1) {
-                                    itemList.add(l, reportList);
+                                    itemList.add(i, reportList);
                                 }
                             } else {
+                                itemList.add(i, reportList);
                                 i++;
                                 expenses1.add(i, sms.getAmtDouble());
                                 expenseDay.add(i, sms.getDateLong());
 
-                                itemList.add(l, reportList);
-                                l++;
                                 reportList = new ArrayList<>();
                                 j = 0;
-                                reportList.add(j, new ReportItem(sms.getMsgType(), sms.getMsgAmt(), sms.getDateLong()));
+                                reportList.add(j, new ReportItem(sms.getMsgType(), sms.getMsgAmt(), sms.getDateLong(), "Daily"));
                                 j++;
                                 if (size == smsList.size() - 1) {
-                                    itemList.add(l, reportList);
+                                    itemList.add(i, reportList);
                                 }
                                 day = sms.getDay();
                             }
                             size++;
                         }
 
-                        double max = 0;
-                        double[] e = new double[expenses1.size()];
-                        for (int z = 0; z < expenses1.size(); z++) {
-                            e[z] = expenses1.get(z);
-                        }
-
-                        int lenDay = expenseDay.size();
-                        if (lenDay > 6) {
-                            lenDay = 6;
-                        }
-                        String[] w = new String[lenDay];
-                        for (int z = 0; z < lenDay; z++) {
-                            w[z] = new SimpleDateFormat("dd/MM").format(new Date(expenseDay.get(z)));
-                        }
-
-                        if (w.length > 1) {
-                            DrawGraph(w.length, max, e, w, "Daily");
+                        if (expenses1.size() > 1) {
+                            DrawGraph(expenses1, expenseDay, "Daily");
                         } else {
                             Toast.makeText(report.this, "Not Enough data to display", Toast.LENGTH_SHORT).show();
                         }
                         break;
                     case "Weekly":
+                        adapterList.clear();
+                        reportAdapter.notifyDataSetChanged();
+                        graph.removeAllSeries();
                         reportList = new ArrayList<>();
                         itemList = new ArrayList<>();
                         List<Double> expenses2 = new ArrayList<>();
@@ -137,60 +125,83 @@ public class report extends Activity {
                         List<Long> expenseWeek = new ArrayList<>();
                         String week = smsList.get(0).getWeek();
                         expenseWeek.add(0, smsList.get(0).getDateLong());
-                        int i1 = 0;
-                        int j1 = 0, l1 = 0;
-                        int size1 = 0;
+                        int i1 = 0, j1 = 0, size1 = 0;
                         for (Sms sms : smsList) {
                             if (sms.getWeek().equals(week)) {
                                 expenses2.set(i1, expenses2.get(i1) + sms.getAmtDouble());
-                                reportList.add(j1, new ReportItem(sms.getMsgType(), sms.getMsgAmt(), sms.getDateLong()));
+                                reportList.add(j1, new ReportItem(sms.getMsgType(), sms.getMsgAmt(), sms.getDateLong(), "Weekly"));
                                 j1++;
                                 if (size1 == smsList.size() - 1) {
-                                    itemList.add(l1, reportList);
+                                    itemList.add(i1, reportList);
                                 }
                             } else {
+                                itemList.add(i1, reportList);
                                 i1++;
                                 expenses2.add(i1, sms.getAmtDouble());
                                 expenseWeek.add(i1, sms.getDateLong());
 
-                                itemList.add(l1, reportList);
-                                l1++;
                                 reportList = new ArrayList<>();
                                 j1 = 0;
-                                reportList.add(j1, new ReportItem(sms.getMsgType(), sms.getMsgAmt(), sms.getDateLong()));
+                                reportList.add(j1, new ReportItem(sms.getMsgType(), sms.getMsgAmt(), sms.getDateLong(), "Weekly"));
                                 j1++;
                                 if (size1 == smsList.size() - 1) {
-                                    itemList.add(l1, reportList);
+                                    itemList.add(i1, reportList);
                                 }
                                 week = sms.getWeek();
                             }
                             size1++;
                         }
 
-                        double max1 = 0;
-                        double[] e1 = new double[expenses2.size()];
-                        for (int z = 0; z < expenses2.size(); z++) {
-                            e1[z] = expenses2.get(z);
-                        }
-
-                        int lenWeek = expenseWeek.size();
-                        if (lenWeek > 6) {
-                            lenWeek = 6;
-                        }
-                        String[] w1 = new String[lenWeek];
-                        for (int z = 0; z < lenWeek; z++) {
-                            w1[z] = "Week:" + new SimpleDateFormat("W").format(new Date(expenseWeek.get(z))) + " of " + new SimpleDateFormat("MMM").format(new Date(expenseWeek.get(z)));
-                        }
-
-                        if (w1.length > 1) {
-                            DrawGraph(w1.length, max1, e1, w1, "Weekly");
+                        if (expenses2.size() > 1) {
+                            DrawGraph(expenses2, expenseWeek, "Weekly");
                         } else {
                             Toast.makeText(report.this, "Not Enough data to display", Toast.LENGTH_SHORT).show();
                         }
-                        Toast.makeText(report.this, "Weekly Selected", Toast.LENGTH_SHORT).show();
                         break;
                     case "Monthly":
-                        Toast.makeText(report.this, "Monthly Selected", Toast.LENGTH_SHORT).show();
+                        adapterList.clear();
+                        reportAdapter.notifyDataSetChanged();
+                        graph.removeAllSeries();
+                        reportList = new ArrayList<>();
+                        itemList = new ArrayList<>();
+                        List<Double> expenses3 = new ArrayList<>();
+                        expenses3.add(0, 0.0);
+                        List<Long> expenseMonth = new ArrayList<>();
+                        String month = smsList.get(0).getMonth();
+                        expenseMonth.add(0, smsList.get(0).getDateLong());
+                        int i3 = 0, j3 = 0, size3 = 0;
+                        for (Sms sms : smsList) {
+                            if (sms.getMonth().equals(month)) {
+                                expenses3.set(i3, expenses3.get(i3) + sms.getAmtDouble());
+                                reportList.add(j3, new ReportItem(sms.getMsgType(), sms.getMsgAmt(), sms.getDateLong(), "Monthly"));
+                                j3++;
+                                if (size3 == smsList.size() - 1) {
+                                    itemList.add(i3, reportList);
+                                }
+                            } else {
+                                itemList.add(i3, reportList);
+                                i3++;
+                                expenses3.add(i3, sms.getAmtDouble());
+                                expenseMonth.add(i3, sms.getDateLong());
+
+                                reportList = new ArrayList<>();
+                                j3 = 0;
+                                reportList.add(j3, new ReportItem(sms.getMsgType(), sms.getMsgAmt(), sms.getDateLong(), "Monthly"));
+                                j3++;
+                                if (size3 == smsList.size() - 1) {
+                                    itemList.add(i3, reportList);
+                                }
+                                month = sms.getMonth();
+                            }
+                            size3++;
+                        }
+
+                        if (expenses3.size() > 1) {
+                            DrawGraph(expenses3, expenseMonth, "Monthly");
+                        } else {
+                            Toast.makeText(report.this, "Not Enough data to display", Toast.LENGTH_SHORT).show();
+                        }
+
                         break;
                 }
             }
@@ -204,10 +215,39 @@ public class report extends Activity {
 
     }
 
-    private void DrawGraph(int length, double max, double[] e, String[] w, String type) {
+    private void DrawGraph(List<Double> expenses, List<Long> expenseDay, String type) {
+
+        int length = expenses.size();
+
         if (length > 6) {
             length = 6;
         }
+
+        double[] e = new double[length];
+        for (int z = 0; z < length; z++) {
+            e[z] = expenses.get(z);
+        }
+
+        String[] w = new String[length];
+        switch (type) {
+            case "Daily":
+                for (int z = 0; z < length; z++) {
+                    w[z] = new SimpleDateFormat("dd/MM").format(new Date(expenseDay.get(z)));
+                }
+                break;
+            case "Weekly":
+                for (int z = 0; z < length; z++) {
+                    w[z] = "Week:" + new SimpleDateFormat("W").format(new Date(expenseDay.get(z))) + " of " + new SimpleDateFormat("MMM").format(new Date(expenseDay.get(z)));
+                }
+                break;
+            case "Monthly":
+                for (int z = 0; z < length; z++) {
+                    w[z] = new SimpleDateFormat("MMM").format(new Date(expenseDay.get(z))) + "'" + new SimpleDateFormat("yy").format(new Date(expenseDay.get(z)));
+                }
+                break;
+        }
+
+        double max = 0;
         DataPoint[] dataPoints = new DataPoint[length];
         for (int k = 0; k < length; k++) {
             dataPoints[k] = new DataPoint(k, e[k]);
@@ -238,6 +278,8 @@ public class report extends Activity {
                     case "Weekly":
                         itemDate.setText(itemList.get((int) dataPoint.getX()).get(0).getReportWeek());
                         break;
+                    case "Monthly":
+                        itemDate.setText(itemList.get((int) dataPoint.getX()).get(0).getReportMonth());
                 }
                 reportAdapter.notifyDataSetChanged();
             }
@@ -247,25 +289,11 @@ public class report extends Activity {
         graph.setTitleTextSize(40);
         graph.setTitleColor(Color.parseColor("#e51c23"));
 
-        graph.getViewport().
-
-                setXAxisBoundsManual(true);
-
-        graph.getViewport().
-
-                setMinX(0);
-
-        graph.getViewport().
-
-                setMaxX(length - 1);
-
-        graph.getViewport().
-
-                setMinY(0);
-
-        graph.getViewport().
-
-                setMaxY(max + 5000);
+        graph.getViewport().setXAxisBoundsManual(true);
+        graph.getViewport().setMinX(0);
+        graph.getViewport().setMaxX(length - 1);
+        graph.getViewport().setMinY(0);
+        graph.getViewport().setMaxY(max + 5000);
 
         StaticLabelsFormatter s = new StaticLabelsFormatter(graph);
         s.setHorizontalLabels(w);
