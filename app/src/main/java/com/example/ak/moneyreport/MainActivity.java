@@ -152,7 +152,7 @@ public class MainActivity extends AppCompatActivity {
                 // some common keywords used in bank messages
                 if (body.contains("debit") && (body.contains("bal") || body.contains("balance")) && !body.contains("recharge")) {
                     t = EXPENSES;
-                } else if (body.contains("credit") && ((body.contains("bal")) || (body.contains("balance"))) && !body.contains("recharge")) {
+                } else if (body.contains("credit") && !(body.contains("card")) && !body.contains("recharge")) {
                     t = INCOME;
                 }
 
@@ -407,7 +407,7 @@ public class MainActivity extends AppCompatActivity {
 
     public String getDate(long milliSeconds) {
         // Create a DateFormatter object for displaying date in specified format.
-        SimpleDateFormat formatter = new SimpleDateFormat("yyyy/MM/dd HH:mm");
+        SimpleDateFormat formatter = new SimpleDateFormat("dd/MM/yy HH:mm");
         return formatter.format(new Date(milliSeconds));
     }
 }

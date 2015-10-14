@@ -2,21 +2,24 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@android:color/background_light"
     android:orientation="vertical">
-
-    <Spinner
-        android:id="@+id/graphOptions"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content" />
 
     <com.jjoe64.graphview.GraphView
         android:id="@+id/graph"
         android:layout_width="match_parent"
         android:layout_height="300dp" />
 
+    <Spinner
+        android:id="@+id/graphOptions"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal" />
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:background="@android:color/background_light"
         android:orientation="horizontal"
         android:weightSum="2">
 
@@ -25,7 +28,7 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:padding="10dp"
-            android:text="Expenses-"
+            android:text="List of Expenses:"
             android:textSize="20dp"
             android:textStyle="bold|italic"
             android:typeface="sans" />
@@ -37,13 +40,14 @@
             android:layout_weight="1"
             android:gravity="end"
             android:padding="10dp"
-            android:text="Date"
-            android:textStyle="bold|italic" />
+            android:textStyle="bold|italic"
+            android:typeface="monospace" />
     </LinearLayout>
 
     <android.support.v7.widget.RecyclerView
         android:id="@+id/report_list"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"></android.support.v7.widget.RecyclerView>
+        android:layout_height="wrap_content"
+        android:background="@android:color/background_light"></android.support.v7.widget.RecyclerView>
 
 </LinearLayout>

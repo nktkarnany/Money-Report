@@ -263,7 +263,7 @@ public class report extends Activity {
         graph.addSeries(series);
         series.setColor(Color.parseColor("#e51c23"));
         series.setSpacing(10);
-        series.setValuesOnTopColor(Color.RED);
+        series.setValuesOnTopColor(Color.BLUE);
         series.setDrawValuesOnTop(true);
 
         series.setOnDataPointTapListener(new OnDataPointTapListener() {
@@ -295,10 +295,13 @@ public class report extends Activity {
         graph.getViewport().setMinY(0);
         graph.getViewport().setMaxY(max + 5000);
 
+        graph.setBackgroundColor(Color.parseColor("#ffffff"));
+        graph.getGridLabelRenderer().setGridColor(Color.TRANSPARENT);
+        graph.getGridLabelRenderer().setHorizontalLabelsColor(Color.RED);
+        graph.getGridLabelRenderer().setVerticalLabelsColor(Color.BLUE);
+
         StaticLabelsFormatter s = new StaticLabelsFormatter(graph);
         s.setHorizontalLabels(w);
-        graph.getGridLabelRenderer().
-
-                setLabelFormatter(s);
+        graph.getGridLabelRenderer().setLabelFormatter(s);
     }
 }
