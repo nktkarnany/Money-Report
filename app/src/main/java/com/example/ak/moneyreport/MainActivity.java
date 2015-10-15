@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
@@ -47,10 +48,10 @@ public class MainActivity extends AppCompatActivity {
     // recycler view to display list of sms
     RecyclerView report;
 
+    SwipeRefreshLayout swipeRefreshLayout;
+
     // output stream file in which sms are saved
     private String filename = "messages";
-
-    private String TAG = "Log Debug";
 
     // a pattern used to find amount from messages
     private String pattern = "(?:inr|rs)+[\\s]*+[0-9]*+[\\\\,]*+[0-9]*+[\\\\.]{1}+[0-9]{2}";
@@ -67,35 +68,13 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        Button readSms = (Button) findViewById(R.id.readInbox);
+        swipeRefreshLayout = (SwipeRefreshLayout) findViewById(R.id.swipeRefresh);
         report = (RecyclerView) findViewById(R.id.report);
 
         report.setHasFixedSize(true);
         report.setLayoutManager(new LinearLayoutManager(this));
         adapter = new MyAdapter(smsList, context);
         report.setAdapter(adapter);
-
-        readSms.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                readMessages();
-            }
-        });
-
-        ItemTouchHelper.SimpleCallback simpleCallback = new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT) {
-            @Override
-            public boolean onMove(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder, RecyclerView.ViewHolder target) {
-                return false;
-            }
-
-            @Override
-            public void onSwiped(RecyclerView.ViewHolder viewHolder, int direction) {
-
-            }
-        };
-
-        ItemTouchHelper itemTouchHelper = new ItemTouchHelper(simpleCallback);
-        itemTouchHelper.attachToRecyclerView(report);
 
         try {
             // file input stream is used to open a file for reading
@@ -112,7 +91,15 @@ public class MainActivity extends AppCompatActivity {
             e.printStackTrace();
         }
 
+        swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                Toast.makeText(MainActivity.this, "Reading Messages...", Toast.LENGTH_SHORT).show();
+                readMessages();
+            }
+        });
     }
+
 
     private void readMessages() {
 
@@ -208,6 +195,7 @@ public class MainActivity extends AppCompatActivity {
             Toast.makeText(MainActivity.this, "No sms to read!!", Toast.LENGTH_SHORT).show();
         }
         c.close();
+        swipeRefreshLayout.setRefreshing(false);
     }
 
     // getting amount by matching the pattern
@@ -240,6 +228,10 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
+            case R.id.refresh:
+                Toast.makeText(MainActivity.this, "Reading Messages...", Toast.LENGTH_SHORT).show();
+                readMessages();
+                break;
             // when action button add is clicked a dialog box appears
             case R.id.add:
                 final Dialog dialog = new Dialog(context);
@@ -365,7 +357,7 @@ public class MainActivity extends AppCompatActivity {
 
                     Intent i = new Intent(MainActivity.this, report.class);
                     Bundle b = new Bundle();
-                    b.putSerializable("SMS", (Serializable) smsList);
+                    b.putSerializable("SMS", (Serializable) smsList1);
                     i.putExtra("DATA", b);
                     startActivity(i);
                 } else {

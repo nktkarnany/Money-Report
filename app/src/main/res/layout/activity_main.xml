@@ -1,28 +1,24 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    style="@style/Base.V7.Theme.AppCompat.Light"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="#e51c23"
     tools:context=".MainActivity">
 
-
-    <android.support.v7.widget.RecyclerView
-        android:id="@+id/report"
-        style="@style/Base.Widget.AppCompat.ListView"
+    <android.support.v4.widget.SwipeRefreshLayout
+        android:id="@+id/swipeRefresh"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_above="@+id/readInbox"
-        android:padding="5dp" />
+        android:layout_height="match_parent">
 
-    <Button
-        android:id="@+id/readInbox"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:background="#e51c23"
-        android:padding="5sp"
-        android:text="Read Your Bank Transactions"
-        android:textColor="#ffffff" />
+        <android.support.v7.widget.RecyclerView
+            android:id="@+id/report"
+            style="@style/Base.Widget.AppCompat.ListView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_above="@+id/readInbox"
+            android:background="@android:color/background_light"
+            android:padding="5dp" />
 
+    </android.support.v4.widget.SwipeRefreshLayout>
 
 </RelativeLayout>

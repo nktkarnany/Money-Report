@@ -9,7 +9,8 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginBottom="2dp"
-        android:padding="10dp">
+        android:padding="10dp"
+        android:background="@android:color/background_light">
 
         <TextView
             android:id="@+id/smsType"

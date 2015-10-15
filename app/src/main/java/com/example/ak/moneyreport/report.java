@@ -74,6 +74,7 @@ public class report extends Activity {
                         adapterList.clear();
                         reportAdapter.notifyDataSetChanged();
                         graph.removeAllSeries();
+                        itemDate.setText(" ");
                         reportList = new ArrayList<>();
                         itemList = new ArrayList<>();
                         List<Double> expenses1 = new ArrayList<>();
@@ -118,6 +119,7 @@ public class report extends Activity {
                         adapterList.clear();
                         reportAdapter.notifyDataSetChanged();
                         graph.removeAllSeries();
+                        itemDate.setText(" ");
                         reportList = new ArrayList<>();
                         itemList = new ArrayList<>();
                         List<Double> expenses2 = new ArrayList<>();
@@ -162,6 +164,7 @@ public class report extends Activity {
                         adapterList.clear();
                         reportAdapter.notifyDataSetChanged();
                         graph.removeAllSeries();
+                        itemDate.setText(" ");
                         reportList = new ArrayList<>();
                         itemList = new ArrayList<>();
                         List<Double> expenses3 = new ArrayList<>();
