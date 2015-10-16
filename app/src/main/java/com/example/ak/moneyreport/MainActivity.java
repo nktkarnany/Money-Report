@@ -3,14 +3,12 @@ package com.example.ak.moneyreport;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.net.Uri;
-import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
-import android.support.v7.widget.helper.ItemTouchHelper;
+import android.support.v7.widget.CardView;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -20,7 +18,10 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Spinner;
+import android.widget.TextView;
 import android.widget.Toast;
+
+import org.w3c.dom.Text;
 
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -39,42 +40,31 @@ public class MainActivity extends AppCompatActivity {
     private Context context = this;
 
     // A list of sms required
-    private List<Sms> smsList = new ArrayList<>();
+    private List<Sms> bankList = new ArrayList<>();
+    private List<Sms> cashList = new ArrayList<>();
 
     // variables used to store and calculate balance in the action bar add button
     private String amt, type, balance;
     private Float bal;
-
-    // recycler view to display list of sms
-    RecyclerView report;
-
-    SwipeRefreshLayout swipeRefreshLayout;
+    private String cashSpent = "0.0";
 
     // output stream file in which sms are saved
     private String filename = "messages";
+    private String filename1 = "Cash Transactions";
+
+    private TextView bankBalance;
+    private TextView estimateDate;
+    private TextView spentAmount;
+    private TextView cashBalance;
 
     // a pattern used to find amount from messages
-    private String pattern = "(?:inr|rs)+[\\s]*+[0-9]*+[\\\\,]*+[0-9]*+[\\\\.]{1}+[0-9]{2}";
-
-    // variables to store type of transaction
-    private String INCOME = "Income";
-    private String EXPENSES = "Personal Expenses";
-
-    MyAdapter adapter;
+    private String pattern = "(?:inr|rs)+[\\s]*+[\\\\.]*+[0-9]*+[\\\\,]*+[0-9]*";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         Log.e("Activity Lifecycle", "OnCreate Started");
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
-        swipeRefreshLayout = (SwipeRefreshLayout) findViewById(R.id.swipeRefresh);
-        report = (RecyclerView) findViewById(R.id.report);
-
-        report.setHasFixedSize(true);
-        report.setLayoutManager(new LinearLayoutManager(this));
-        adapter = new MyAdapter(smsList, context);
-        report.setAdapter(adapter);
 
         try {
             // file input stream is used to open a file for reading
@@ -83,7 +73,7 @@ public class MainActivity extends AppCompatActivity {
             ObjectInputStream i = new ObjectInputStream(f);
             // object read is in the form of list<Sms> so iterate over the list to extract all Sms objects.
             for (Sms r : (List<Sms>) i.readObject()) {
-                smsList.add(r);
+                bankList.add(r);
             }
             i.close();
             f.close();
@@ -91,15 +81,87 @@ public class MainActivity extends AppCompatActivity {
             e.printStackTrace();
         }
 
-        swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+        try {
+            // file input stream is used to open a file for reading
+            FileInputStream f = context.openFileInput(filename1);
+            // object input stream is used to read object from the file opened
+            ObjectInputStream i = new ObjectInputStream(f);
+            // object read is in the form of list<Sms> so iterate over the list to extract all Sms objects.
+            for (Sms r : (List<Sms>) i.readObject()) {
+                cashList.add(r);
+            }
+            i.close();
+            f.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        SharedPreferences saveSpent = getSharedPreferences("KEY", Context.MODE_PRIVATE);
+        if (!saveSpent.getString("SPENT", "").equals(""))
+            cashSpent = saveSpent.getString("SPENT", "");
+
+        bankBalance = (TextView) findViewById(R.id.bankBalance);
+        estimateDate = (TextView) findViewById(R.id.estimateDate);
+
+        spentAmount = (TextView) findViewById(R.id.spendAmount);
+        cashBalance = (TextView) findViewById(R.id.cashBalance);
+
+        if (cashList.size() > 0) {
+            cashBalance.setText(cashList.get(0).getMsgBal());
+        } else {
+            cashBalance.setText("₹ 0.0");
+        }
+
+        spentAmount.setText("₹ " + cashSpent);
+
+        readMessages();
+
+        CardView bankCard = (CardView) findViewById(R.id.bankCard);
+        bankCard.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onRefresh() {
-                Toast.makeText(MainActivity.this, "Reading Messages...", Toast.LENGTH_SHORT).show();
-                readMessages();
+            public void onClick(View v) {
+                if (bankList.size() > 0) {
+                    Intent bank = new Intent(MainActivity.this, BankTransactions.class);
+                    Bundle b = new Bundle();
+                    b.putSerializable("SMS", (Serializable) bankList);
+                    bank.putExtra("DATA", b);
+                    startActivity(bank);
+                } else {
+                    Toast.makeText(MainActivity.this, "No Bank Transactions to display", Toast.LENGTH_SHORT).show();
+                }
             }
         });
+
+        CardView cashCard = (CardView) findViewById(R.id.cashCard);
+        cashCard.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent cash = new Intent(MainActivity.this, CashTransactions.class);
+                Bundle b = new Bundle();
+                b.putSerializable("CASH", (Serializable) cashList);
+                b.putString("Spent", cashSpent);
+                cash.putExtra("DATA", b);
+                startActivityForResult(cash, 1);
+            }
+        });
+
     }
 
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == 1) {
+            cashList = (ArrayList<Sms>) data.getBundleExtra("Result").getSerializable("cash");
+            cashSpent = data.getBundleExtra("Result").getString("SPENT");
+            if (cashList.size() > 0) {
+                cashBalance.setText(cashList.get(0).getMsgBal());
+            } else {
+                cashBalance.setText("₹ 0.0");
+            }
+
+            spentAmount.setText("₹ " + cashSpent);
+        }
+    }
 
     private void readMessages() {
 
@@ -109,9 +171,9 @@ public class MainActivity extends AppCompatActivity {
         // this is used to filter already read messages
         String filter = null;
 
-        // if list is greater than zero then the last date is read and a filter greater than that date  is made
-        if (smsList.size() > 0) {
-            String lastDate = smsList.get(0).getMsgDate();
+        // if list is greater than zero then the last date is read and a filter greater than that date is made
+        if (bankList.size() > 0) {
+            String lastDate = bankList.get(0).getMsgDate();
             filter = "date>" + lastDate;
         }
 
@@ -137,10 +199,10 @@ public class MainActivity extends AppCompatActivity {
                 body = body.toLowerCase();
 
                 // some common keywords used in bank messages
-                if (body.contains("debit") && (body.contains("bal") || body.contains("balance")) && !body.contains("recharge")) {
-                    t = EXPENSES;
-                } else if (body.contains("credit") && !(body.contains("card")) && !body.contains("recharge")) {
-                    t = INCOME;
+                if (body.contains("debit") || body.contains("internet banking") && !body.contains("recharge")) {
+                    t = "Personal Expenses";
+                } else if (body.contains("credit") || (body.contains("cheque") && body.contains("deposit")) && !body.contains("recharge")) {
+                    t = "Income";
                 }
 
                 // switched according to the type to extract information from the message
@@ -158,12 +220,15 @@ public class MainActivity extends AppCompatActivity {
                         body = body.replaceFirst(pattern, "");
                         if (getAmount(body) != null) {
                             sms.setMsgBal(getAmount(body));
-                            smsList.add(0, sms);
-                            report.scrollToPosition(0);
-                            adapter.notifyItemInserted(0);
+                            bankList.add(0, sms);
                         } else {
+                            if (bankList.size() > 0) {
+                                sms.setMsgBal(Float.toString(Float.parseFloat(bankList.get(0).getMsgBal()) - Float.parseFloat(sms.getMsgAmt())));
+                                bankList.add(0, sms);
+                            }
                             c.moveToPrevious();
                             continue;
+
                         }
                         break;
 
@@ -179,10 +244,12 @@ public class MainActivity extends AppCompatActivity {
                         body = body.replaceFirst(pattern, "");
                         if (getAmount(body) != null) {
                             sms.setMsgBal(getAmount(body));
-                            smsList.add(0, sms);
-                            report.scrollToPosition(0);
-                            adapter.notifyItemInserted(0);
+                            bankList.add(0, sms);
                         } else {
+                            if (bankList.size() > 0) {
+                                sms.setMsgBal(Float.toString(Float.parseFloat(bankList.get(0).getMsgBal()) + Float.parseFloat(sms.getMsgAmt())));
+                                bankList.add(0, sms);
+                            }
                             c.moveToPrevious();
                             continue;
                         }
@@ -195,7 +262,13 @@ public class MainActivity extends AppCompatActivity {
             Toast.makeText(MainActivity.this, "No sms to read!!", Toast.LENGTH_SHORT).show();
         }
         c.close();
-        swipeRefreshLayout.setRefreshing(false);
+        if (bankList.size() > 0) {
+            bankBalance.setText("₹ " + bankList.get(0).getMsgBal());
+            estimateDate.setText(bankList.get(0).getFormatDate());
+        } else {
+            bankBalance.setText("₹ 0.0");
+            estimateDate.setText(" ");
+        }
     }
 
     // getting amount by matching the pattern
@@ -208,6 +281,7 @@ public class MainActivity extends AppCompatActivity {
                 String a = (matcher.group(0));
                 a = a.replace("rs", "");
                 a = a.replace("inr", "");
+                a = a.replace(".", "");
                 a = a.replace(" ", "");
                 a = a.replace(",", "");
                 return a;
@@ -236,7 +310,7 @@ public class MainActivity extends AppCompatActivity {
             case R.id.add:
                 final Dialog dialog = new Dialog(context);
                 dialog.setContentView(R.layout.add_dialog);
-                dialog.setTitle("Add Transaction");
+                dialog.setTitle("Add Cash Transaction");
 
                 final EditText addAmt = (EditText) dialog.findViewById(R.id.addAmt);
 
@@ -264,11 +338,8 @@ public class MainActivity extends AppCompatActivity {
                 save.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        // when save button is clicked then first the readMessages is read messages from inbox if not read
-                        // this updates the list of sms and keeps the latest message on the top
-                        readMessages();
                         // then according to the id of check button balance is calculated
-                        int index = smsList.size() - 1;
+                        int index = cashList.size() - 1;
                         amt = addAmt.getText().toString();
                         if (amt.trim().equals("")) {
                             amt = "0.0";
@@ -278,7 +349,7 @@ public class MainActivity extends AppCompatActivity {
                             case "Personal Expenses":
                                 // index will be zero if there are no messages in the list so balance will be equal to the amount
                                 if (index >= 0) {
-                                    balance = smsList.get(0).getMsgBal();
+                                    balance = cashList.get(0).getMsgBal();
                                     bal = Float.parseFloat(balance) - Float.parseFloat(amt);
                                     balance = Float.toString(bal);
                                 } else {
@@ -289,7 +360,7 @@ public class MainActivity extends AppCompatActivity {
                             case "Food":
                                 // index will be zero if there are no messages in the list so balance will be equal to the amount
                                 if (index >= 0) {
-                                    balance = smsList.get(0).getMsgBal();
+                                    balance = cashList.get(0).getMsgBal();
                                     bal = Float.parseFloat(balance) - Float.parseFloat(amt);
                                     balance = Float.toString(bal);
                                 } else {
@@ -300,7 +371,7 @@ public class MainActivity extends AppCompatActivity {
                             case "Transport":
                                 // index will be zero if there are no messages in the list so balance will be equal to the amount
                                 if (index >= 0) {
-                                    balance = smsList.get(0).getMsgBal();
+                                    balance = cashList.get(0).getMsgBal();
                                     bal = Float.parseFloat(balance) - Float.parseFloat(amt);
                                     balance = Float.toString(bal);
                                 } else {
@@ -310,7 +381,7 @@ public class MainActivity extends AppCompatActivity {
                                 break;
                             case "Salary":
                                 if (index >= 0) {
-                                    balance = smsList.get(0).getMsgBal();
+                                    balance = cashList.get(0).getMsgBal();
                                     bal = Float.parseFloat(balance) + Float.parseFloat(amt);
                                     balance = Float.toString(bal);
                                 } else {
@@ -320,7 +391,7 @@ public class MainActivity extends AppCompatActivity {
                                 break;
                             case "Income":
                                 if (index >= 0) {
-                                    balance = smsList.get(0).getMsgBal();
+                                    balance = cashList.get(0).getMsgBal();
                                     bal = Float.parseFloat(balance) + Float.parseFloat(amt);
                                     balance = Float.toString(bal);
                                 } else {
@@ -334,36 +405,16 @@ public class MainActivity extends AppCompatActivity {
                         long time = System.currentTimeMillis();
                         Sms s = new Sms(type, amt, Long.toString(time), balance);
                         s.setFormatDate(getDate(time));
-                        smsList.add(0, s);
-                        report.scrollToPosition(0);
-                        adapter.notifyItemInserted(0);
+                        cashList.add(0, s);
                         dialog.dismiss();
+                        if (s.getMsgType().equals("Personal Expenses") || s.getMsgType().equals("Food") || s.getMsgType().equals("Transport")) {
+                            cashSpent = Float.toString(Float.parseFloat(cashSpent) + Float.parseFloat(amt));
+                            spentAmount.setText(cashSpent);
+                        }
+                        cashBalance.setText(cashList.get(0).getMsgBal());
                         Toast.makeText(MainActivity.this, "Transaction Added", Toast.LENGTH_SHORT).show();
                     }
                 });
-                break;
-
-            case R.id.forward:
-                // when forward action button is clicked a bar chart is displayed whose values are calculated here
-                if (smsList.size() > 0) {
-
-                    List<Sms> smsList1 = new ArrayList<>();
-
-                    for (Sms s : smsList) {
-                        if (s.getMsgType().equals("Personal Expenses") || s.getMsgType().equals("Food") || s.getMsgType().equals("Transport")) {
-                            smsList1.add(s);
-                        }
-                    }
-
-                    Intent i = new Intent(MainActivity.this, report.class);
-                    Bundle b = new Bundle();
-                    b.putSerializable("SMS", (Serializable) smsList1);
-                    i.putExtra("DATA", b);
-                    startActivity(i);
-                } else {
-                    // if no messages are there then a toast is displayed
-                    Toast.makeText(MainActivity.this, "Nothing to displaying", Toast.LENGTH_SHORT).show();
-                }
                 break;
         }
         return super.onOptionsItemSelected(item);
@@ -372,14 +423,12 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onPause() {
         super.onPause();
-        Log.e("Activity Lifecycle", "OnPause Started");
         save();
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        Log.e("Activity Lifecycle", "OnDestroy Started");
         save();
     }
 
@@ -389,17 +438,33 @@ public class MainActivity extends AppCompatActivity {
             FileOutputStream f = context.openFileOutput(filename, Context.MODE_PRIVATE);
             // object output stream is used to write object to the file opened
             ObjectOutputStream o = new ObjectOutputStream(f);
-            o.writeObject(smsList);
+            o.writeObject(bankList);
             o.close();
             f.close();
         } catch (Exception e) {
             e.printStackTrace();
         }
+        try {
+            // file output stream is used to open a file for writing
+            FileOutputStream f = context.openFileOutput(filename1, Context.MODE_PRIVATE);
+            // object output stream is used to write object to the file opened
+            ObjectOutputStream o = new ObjectOutputStream(f);
+            o.writeObject(cashList);
+            o.close();
+            f.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        SharedPreferences saveSpent = getSharedPreferences("KEY", Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = saveSpent.edit();
+        editor.putString("SPENT", cashSpent);
+        editor.commit();
     }
 
     public String getDate(long milliSeconds) {
         // Create a DateFormatter object for displaying date in specified format.
-        SimpleDateFormat formatter = new SimpleDateFormat("dd/MM/yy HH:mm");
+        SimpleDateFormat formatter = new SimpleDateFormat("dd/MMM/yy");
         return formatter.format(new Date(milliSeconds));
     }
 }

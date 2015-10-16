@@ -11,13 +11,19 @@
         android:theme="@style/AppTheme">
         <activity
             android:name=".MainActivity"
-            android:label="@string/app_name">
+            android:label="Money Manager">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity
+            android:name=".BankTransactions"
+            android:label="Bank Transactions" />
+        <activity
+            android:name=".CashTransactions"
+            android:label="Cash Transactions" />
         <activity android:name="org.achartengine.GraphicalActivity" />
         <activity android:name=".report" />
     </application>

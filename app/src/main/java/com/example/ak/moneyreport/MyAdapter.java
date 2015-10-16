@@ -36,7 +36,6 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.ViewHolder> {
         this.context = context;
     }
 
-    
 
     @Override
     public ViewHolder onCreateViewHolder(ViewGroup parent, int i) {
@@ -48,9 +47,9 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.ViewHolder> {
     @Override
     public void onBindViewHolder(ViewHolder holder, int position) {
         holder.smsType.setText(smsList.get(position).getMsgType());
-        holder.smsAmt.setText("INR " + smsList.get(position).getMsgAmt());
+        holder.smsAmt.setText("₹ " + smsList.get(position).getMsgAmt());
         holder.smsDate.setText(smsList.get(position).getFormatDate());
-        holder.smsBal.setText(smsList.get(position).getMsgBal());
+        holder.smsBal.setText("₹ " + smsList.get(position).getMsgBal());
     }
 
     @Override

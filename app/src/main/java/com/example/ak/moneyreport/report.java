@@ -109,11 +109,7 @@ public class report extends Activity {
                             size++;
                         }
 
-                        if (expenses1.size() > 1) {
-                            DrawGraph(expenses1, expenseDay, "Daily");
-                        } else {
-                            Toast.makeText(report.this, "Not Enough data to display", Toast.LENGTH_SHORT).show();
-                        }
+                        DrawGraph(expenses1, expenseDay, "Daily");
                         break;
                     case "Weekly":
                         adapterList.clear();
@@ -154,11 +150,7 @@ public class report extends Activity {
                             size1++;
                         }
 
-                        if (expenses2.size() > 1) {
-                            DrawGraph(expenses2, expenseWeek, "Weekly");
-                        } else {
-                            Toast.makeText(report.this, "Not Enough data to display", Toast.LENGTH_SHORT).show();
-                        }
+                        DrawGraph(expenses2, expenseWeek, "Weekly");
                         break;
                     case "Monthly":
                         adapterList.clear();
@@ -199,11 +191,7 @@ public class report extends Activity {
                             size3++;
                         }
 
-                        if (expenses3.size() > 1) {
-                            DrawGraph(expenses3, expenseMonth, "Monthly");
-                        } else {
-                            Toast.makeText(report.this, "Not Enough data to display", Toast.LENGTH_SHORT).show();
-                        }
+                        DrawGraph(expenses3, expenseMonth, "Monthly");
 
                         break;
                 }
@@ -221,6 +209,12 @@ public class report extends Activity {
     private void DrawGraph(List<Double> expenses, List<Long> expenseDay, String type) {
 
         int length = expenses.size();
+
+        if (length < 2) {
+            expenseDay.add(length, System.currentTimeMillis());
+            expenses.add(length, 0.0);
+            length = 2;
+        }
 
         if (length > 6) {
             length = 6;

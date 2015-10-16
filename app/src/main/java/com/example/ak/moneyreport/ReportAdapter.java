@@ -43,7 +43,7 @@ public class ReportAdapter extends RecyclerView.Adapter<ReportAdapter.ViewHolder
     @Override
     public void onBindViewHolder(ViewHolder holder, int position) {
         holder.reportType.setText(reportList.get(position).getReportType());
-        holder.reportAmt.setText(reportList.get(position).getReportAmt());
+        holder.reportAmt.setText("₹ " + reportList.get(position).getReportAmt());
         if (reportList.get(0).getDayType().equals("Daily"))
             holder.reportTime.setText(reportList.get(position).getReportTime());
         else if (reportList.get(0).getDayType().equals("Weekly"))
