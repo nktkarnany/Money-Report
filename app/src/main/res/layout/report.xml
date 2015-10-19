@@ -8,7 +8,7 @@
     <com.jjoe64.graphview.GraphView
         android:id="@+id/graph"
         android:layout_width="match_parent"
-        android:layout_height="300dp" />
+        android:layout_height="300sp" />
 
     <Spinner
         android:id="@+id/graphOptions"
@@ -29,7 +29,7 @@
             android:layout_weight="1"
             android:padding="10dp"
             android:text="List of Expenses:"
-            android:textSize="20dp"
+            android:textSize="20sp"
             android:textStyle="bold|italic"
             android:typeface="sans" />
 
@@ -48,6 +48,6 @@
         android:id="@+id/report_list"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@android:color/background_light"></android.support.v7.widget.RecyclerView>
+        android:background="@android:color/background_light" />
 
 </LinearLayout>

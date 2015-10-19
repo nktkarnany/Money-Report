@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.example.ak.moneyreport">
+    package="com.manage.ak.moneyreport">
 
     <uses-permission android:name="android.permission.READ_SMS" />
 
@@ -11,7 +11,7 @@
         android:theme="@style/AppTheme">
         <activity
             android:name=".MainActivity"
-            android:label="Money Manager">
+            android:label="Money Manger">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -24,7 +24,6 @@
         <activity
             android:name=".CashTransactions"
             android:label="Cash Transactions" />
-        <activity android:name="org.achartengine.GraphicalActivity" />
         <activity android:name=".report" />
     </application>
 

@@ -1,4 +1,4 @@
-package com.example.ak.moneyreport;
+package com.manage.ak.moneyreport;
 
 import android.app.Application;
 import android.test.ApplicationTestCase;

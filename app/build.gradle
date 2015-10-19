@@ -5,7 +5,7 @@ android {
     buildToolsVersion "23.0.1"
 
     defaultConfig {
-        applicationId "com.example.ak.moneyreport"
+        applicationId "com.manage.ak.moneyreport"
         minSdkVersion 16
         targetSdkVersion 23
         versionCode 1
@@ -21,8 +21,9 @@ android {
 
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
+    compile files('libs/GraphView-4.0.1.jar')
     compile 'com.android.support:appcompat-v7:23.0.1'
     compile 'com.android.support:recyclerview-v7:23.0.1'
-    compile files('libs/GraphView-4.0.1.jar')
     compile 'com.android.support:cardview-v7:23.0.1'
+    compile 'com.google.android.gms:play-services-ads:8.1.0'
 }

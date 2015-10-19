@@ -1,4 +1,4 @@
-package com.example.ak.moneyreport;
+package com.manage.ak.moneyreport;
 
 import android.app.Dialog;
 import android.content.Context;
@@ -21,7 +21,8 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import org.w3c.dom.Text;
+import com.google.android.gms.ads.AdRequest;
+import com.google.android.gms.ads.AdView;
 
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -45,7 +46,7 @@ public class MainActivity extends AppCompatActivity {
 
     // variables used to store and calculate balance in the action bar add button
     private String amt, type, balance;
-    private Float bal;
+    private double bal;
     private String cashSpent = "0.0";
 
     // output stream file in which sms are saved
@@ -58,13 +59,20 @@ public class MainActivity extends AppCompatActivity {
     private TextView cashBalance;
 
     // a pattern used to find amount from messages
-    private String pattern = "(?:inr|rs)+[\\s]*+[\\\\.]*+[0-9]*+[\\\\,]*+[0-9]*";
+    private String pattern1 = "(inr)+[\\s]?+[0-9]*+[\\\\,]*+[0-9]*+[\\\\.][0-9]{2}";
+    private String pattern2 = "(rs)+[\\\\.][\\s]?+[0-9]*+[\\\\,]*+[0-9]*+[\\\\.][0-9]{2}";
+
+    private int FLAG = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         Log.e("Activity Lifecycle", "OnCreate Started");
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        AdView mAdView = (AdView) findViewById(R.id.adView);
+        AdRequest adRequest = new AdRequest.Builder().build();
+        mAdView.loadAd(adRequest);
 
         try {
             // file input stream is used to open a file for reading
@@ -109,7 +117,7 @@ public class MainActivity extends AppCompatActivity {
         if (cashList.size() > 0) {
             cashBalance.setText(cashList.get(0).getMsgBal());
         } else {
-            cashBalance.setText("₹ 0.0");
+            cashBalance.setText("₹ " + "0.0");
         }
 
         spentAmount.setText("₹ " + cashSpent);
@@ -154,9 +162,9 @@ public class MainActivity extends AppCompatActivity {
             cashList = (ArrayList<Sms>) data.getBundleExtra("Result").getSerializable("cash");
             cashSpent = data.getBundleExtra("Result").getString("SPENT");
             if (cashList.size() > 0) {
-                cashBalance.setText(cashList.get(0).getMsgBal());
+                cashBalance.setText("₹ " + cashList.get(0).getMsgBal());
             } else {
-                cashBalance.setText("₹ 0.0");
+                cashBalance.setText("₹ " + "0.0");
             }
 
             spentAmount.setText("₹ " + cashSpent);
@@ -199,9 +207,9 @@ public class MainActivity extends AppCompatActivity {
                 body = body.toLowerCase();
 
                 // some common keywords used in bank messages
-                if (body.contains("debit") || body.contains("internet banking") && !body.contains("recharge")) {
+                if ((body.contains("debit") || body.contains("internet banking")) && !body.contains("recharge") && !body.contains("ola") && !body.contains("paytm")) {
                     t = "Personal Expenses";
-                } else if (body.contains("credit") || (body.contains("cheque") && body.contains("deposit")) && !body.contains("recharge")) {
+                } else if ((body.contains("credit") || body.contains("deposited")) && !body.contains("recharge") && !body.contains("ola") && !body.contains("paytm")) {
                     t = "Income";
                 }
 
@@ -216,16 +224,16 @@ public class MainActivity extends AppCompatActivity {
                             c.moveToPrevious();
                             continue;
                         }
-                        // the first pattern is replaced because balance has same pattern and is after the transaction amount
-                        body = body.replaceFirst(pattern, "");
+                        if (FLAG == 1) {
+                            body = body.replaceFirst(pattern1, "");
+                        } else if (FLAG == 2) {
+                            body = body.replaceFirst(pattern2, "");
+                        }
+                        FLAG = 0;
                         if (getAmount(body) != null) {
                             sms.setMsgBal(getAmount(body));
                             bankList.add(0, sms);
                         } else {
-                            if (bankList.size() > 0) {
-                                sms.setMsgBal(Float.toString(Float.parseFloat(bankList.get(0).getMsgBal()) - Float.parseFloat(sms.getMsgAmt())));
-                                bankList.add(0, sms);
-                            }
                             c.moveToPrevious();
                             continue;
 
@@ -241,15 +249,16 @@ public class MainActivity extends AppCompatActivity {
                             c.moveToPrevious();
                             continue;
                         }
-                        body = body.replaceFirst(pattern, "");
+                        if (FLAG == 1) {
+                            body = body.replaceFirst(pattern1, "");
+                        } else if (FLAG == 2) {
+                            body = body.replaceFirst(pattern2, "");
+                        }
+                        FLAG = 0;
                         if (getAmount(body) != null) {
                             sms.setMsgBal(getAmount(body));
                             bankList.add(0, sms);
                         } else {
-                            if (bankList.size() > 0) {
-                                sms.setMsgBal(Float.toString(Float.parseFloat(bankList.get(0).getMsgBal()) + Float.parseFloat(sms.getMsgAmt())));
-                                bankList.add(0, sms);
-                            }
                             c.moveToPrevious();
                             continue;
                         }
@@ -266,29 +275,44 @@ public class MainActivity extends AppCompatActivity {
             bankBalance.setText("₹ " + bankList.get(0).getMsgBal());
             estimateDate.setText(bankList.get(0).getFormatDate());
         } else {
-            bankBalance.setText("₹ 0.0");
+            bankBalance.setText("₹ " + "0.0");
             estimateDate.setText(" ");
         }
     }
 
     // getting amount by matching the pattern
     public String getAmount(String data) {
-        Pattern regex = Pattern.compile(pattern);
-        Matcher matcher = regex.matcher(data);
-        if (matcher.find()) {
+        Pattern regex1 = Pattern.compile(pattern1);
+        Pattern regex2 = Pattern.compile(pattern2);
+        Matcher matcher1 = regex1.matcher(data);
+        Matcher matcher2 = regex2.matcher(data);
+        if (matcher1.find()) {
             try {
-                // searched for rs or inr preceding number in the form of **,***.**
-                String a = (matcher.group(0));
-                a = a.replace("rs", "");
+                // searched for rs or inr preceding number in the form of inr **,***.**
+                String a = (matcher1.group(0));
                 a = a.replace("inr", "");
-                a = a.replace(".", "");
                 a = a.replace(" ", "");
                 a = a.replace(",", "");
+                FLAG = 1;
+                return a;
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        } else if (matcher2.find()) {
+            try {
+                // searched for rs or inr preceding number in the form of rs. **,***.**
+                String a = (matcher2.group(0));
+                a = a.replace("rs", "");
+                a = a.replaceFirst(".", "");
+                a = a.replace(" ", "");
+                a = a.replace(",", "");
+                FLAG = 2;
                 return a;
             } catch (Exception e) {
                 e.printStackTrace();
             }
         }
+        FLAG = 0;
         return null;
     }
 
@@ -350,8 +374,8 @@ public class MainActivity extends AppCompatActivity {
                                 // index will be zero if there are no messages in the list so balance will be equal to the amount
                                 if (index >= 0) {
                                     balance = cashList.get(0).getMsgBal();
-                                    bal = Float.parseFloat(balance) - Float.parseFloat(amt);
-                                    balance = Float.toString(bal);
+                                    bal = Double.parseDouble(balance) - Double.parseDouble(amt);
+                                    balance = Double.toString(bal);
                                 } else {
                                     // negative in case of expenses
                                     balance = "-" + amt;
@@ -361,8 +385,8 @@ public class MainActivity extends AppCompatActivity {
                                 // index will be zero if there are no messages in the list so balance will be equal to the amount
                                 if (index >= 0) {
                                     balance = cashList.get(0).getMsgBal();
-                                    bal = Float.parseFloat(balance) - Float.parseFloat(amt);
-                                    balance = Float.toString(bal);
+                                    bal = Double.parseDouble(balance) - Double.parseDouble(amt);
+                                    balance = Double.toString(bal);
                                 } else {
                                     // negative in case of expenses
                                     balance = "-" + amt;
@@ -372,8 +396,8 @@ public class MainActivity extends AppCompatActivity {
                                 // index will be zero if there are no messages in the list so balance will be equal to the amount
                                 if (index >= 0) {
                                     balance = cashList.get(0).getMsgBal();
-                                    bal = Float.parseFloat(balance) - Float.parseFloat(amt);
-                                    balance = Float.toString(bal);
+                                    bal = Double.parseDouble(balance) - Double.parseDouble(amt);
+                                    balance = Double.toString(bal);
                                 } else {
                                     // negative in case of expenses
                                     balance = "-" + amt;
@@ -382,8 +406,8 @@ public class MainActivity extends AppCompatActivity {
                             case "Salary":
                                 if (index >= 0) {
                                     balance = cashList.get(0).getMsgBal();
-                                    bal = Float.parseFloat(balance) + Float.parseFloat(amt);
-                                    balance = Float.toString(bal);
+                                    bal = Double.parseDouble(balance) + Double.parseDouble(amt);
+                                    balance = Double.toString(bal);
                                 } else {
                                     // positive in case of income
                                     balance = amt;
@@ -392,8 +416,8 @@ public class MainActivity extends AppCompatActivity {
                             case "Income":
                                 if (index >= 0) {
                                     balance = cashList.get(0).getMsgBal();
-                                    bal = Float.parseFloat(balance) + Float.parseFloat(amt);
-                                    balance = Float.toString(bal);
+                                    bal = Double.parseDouble(balance) + Double.parseDouble(amt);
+                                    balance = Double.toString(bal);
                                 } else {
                                     // positive in case of income
                                     balance = amt;
@@ -408,7 +432,7 @@ public class MainActivity extends AppCompatActivity {
                         cashList.add(0, s);
                         dialog.dismiss();
                         if (s.getMsgType().equals("Personal Expenses") || s.getMsgType().equals("Food") || s.getMsgType().equals("Transport")) {
-                            cashSpent = Float.toString(Float.parseFloat(cashSpent) + Float.parseFloat(amt));
+                            cashSpent = Double.toString(Double.parseDouble(cashSpent) + Double.parseDouble(amt));
                             spentAmount.setText(cashSpent);
                         }
                         cashBalance.setText(cashList.get(0).getMsgBal());

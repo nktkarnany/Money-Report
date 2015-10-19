@@ -1,4 +1,4 @@
-package com.example.ak.moneyreport;
+package com.manage.ak.moneyreport;
 
 import android.app.Dialog;
 import android.content.Context;
@@ -32,7 +32,7 @@ public class CashTransactions extends AppCompatActivity {
 
     // variables used to store and calculate balance in the action bar add button
     private String amt, type, balance;
-    private Float bal;
+    private double bal;
     private String cashSpent = "0.0";
 
     RecyclerView readCash;
@@ -133,8 +133,8 @@ public class CashTransactions extends AppCompatActivity {
                                 // index will be zero if there are no messages in the list so balance will be equal to the amount
                                 if (index >= 0) {
                                     balance = cashList.get(0).getMsgBal();
-                                    bal = Float.parseFloat(balance) - Float.parseFloat(amt);
-                                    balance = Float.toString(bal);
+                                    bal = Double.parseDouble(balance) - Double.parseDouble(amt);
+                                    balance = Double.toString(bal);
                                 } else {
                                     // negative in case of expenses
                                     balance = "-" + amt;
@@ -144,8 +144,8 @@ public class CashTransactions extends AppCompatActivity {
                                 // index will be zero if there are no messages in the list so balance will be equal to the amount
                                 if (index >= 0) {
                                     balance = cashList.get(0).getMsgBal();
-                                    bal = Float.parseFloat(balance) - Float.parseFloat(amt);
-                                    balance = Float.toString(bal);
+                                    bal = Double.parseDouble(balance) - Double.parseDouble(amt);
+                                    balance = Double.toString(bal);
                                 } else {
                                     // negative in case of expenses
                                     balance = "-" + amt;
@@ -155,8 +155,8 @@ public class CashTransactions extends AppCompatActivity {
                                 // index will be zero if there are no messages in the list so balance will be equal to the amount
                                 if (index >= 0) {
                                     balance = cashList.get(0).getMsgBal();
-                                    bal = Float.parseFloat(balance) - Float.parseFloat(amt);
-                                    balance = Float.toString(bal);
+                                    bal = Double.parseDouble(balance) - Double.parseDouble(amt);
+                                    balance = Double.toString(bal);
                                 } else {
                                     // negative in case of expenses
                                     balance = "-" + amt;
@@ -165,8 +165,8 @@ public class CashTransactions extends AppCompatActivity {
                             case "Salary":
                                 if (index >= 0) {
                                     balance = cashList.get(0).getMsgBal();
-                                    bal = Float.parseFloat(balance) + Float.parseFloat(amt);
-                                    balance = Float.toString(bal);
+                                    bal = Double.parseDouble(balance) + Double.parseDouble(amt);
+                                    balance = Double.toString(bal);
                                 } else {
                                     // positive in case of income
                                     balance = amt;
@@ -175,8 +175,8 @@ public class CashTransactions extends AppCompatActivity {
                             case "Income":
                                 if (index >= 0) {
                                     balance = cashList.get(0).getMsgBal();
-                                    bal = Float.parseFloat(balance) + Float.parseFloat(amt);
-                                    balance = Float.toString(bal);
+                                    bal = Double.parseDouble(balance) + Double.parseDouble(amt);
+                                    balance = Double.toString(bal);
                                 } else {
                                     // positive in case of income
                                     balance = amt;
@@ -194,23 +194,20 @@ public class CashTransactions extends AppCompatActivity {
                         myAdapter.notifyItemInserted(0);
                         Toast.makeText(CashTransactions.this, "Transaction Added", Toast.LENGTH_SHORT).show();
                         if (s.getMsgType().equals("Personal Expenses") || s.getMsgType().equals("Food") || s.getMsgType().equals("Transport")) {
-                            cashSpent = Float.toString(Float.parseFloat(cashSpent) + Float.parseFloat(amt));
+                            cashSpent = Double.toString(Double.parseDouble(cashSpent) + Double.parseDouble(amt));
                         }
                     }
                 });
                 break;
             case R.id.forward:
-                // when forward action button is clicked a bar chart is displayed whose values are calculated here
-                if (cashList.size() > 0) {
-
-                    List<Sms> smsList1 = new ArrayList<>();
-
-                    for (Sms s : cashList) {
-                        if (s.getMsgType().equals("Personal Expenses") || s.getMsgType().equals("Food") || s.getMsgType().equals("Transport")) {
-                            smsList1.add(s);
-                        }
+                List<Sms> smsList1 = new ArrayList<>();
+                for (Sms s : cashList) {
+                    if (s.getMsgType().equals("Personal Expenses") || s.getMsgType().equals("Food") || s.getMsgType().equals("Transport")) {
+                        smsList1.add(s);
                     }
-
+                }
+                // when forward action button is clicked a bar chart is displayed whose values are calculated here
+                if (smsList1.size() > 0) {
                     Intent i = new Intent(CashTransactions.this, report.class);
                     Bundle b = new Bundle();
                     b.putSerializable("SMS", (Serializable) smsList1);
@@ -218,7 +215,7 @@ public class CashTransactions extends AppCompatActivity {
                     startActivity(i);
                 } else {
                     // if no messages are there then a toast is displayed
-                    Toast.makeText(CashTransactions.this, "Nothing to displaying", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(CashTransactions.this, "You have not spent money", Toast.LENGTH_SHORT).show();
                 }
                 break;
         }
