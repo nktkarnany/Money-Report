@@ -44,6 +44,8 @@ public class MainActivity extends AppCompatActivity {
     private List<Sms> bankList = new ArrayList<>();
     private List<Sms> cashList = new ArrayList<>();
 
+    private String BALANCE = "0.0";
+
     // variables used to store and calculate balance in the action bar add button
     private String amt, type, balance;
     private double bal;
@@ -58,17 +60,38 @@ public class MainActivity extends AppCompatActivity {
     private TextView spentAmount;
     private TextView cashBalance;
 
-    // a pattern used to find amount from messages
-    private String pattern1 = "(inr)+[\\s]?+[0-9]*+[\\\\,]*+[0-9]*+[\\\\.][0-9]{2}";
-    private String pattern2 = "(rs)+[\\\\.][\\s]?+[0-9]*+[\\\\,]*+[0-9]*+[\\\\.][0-9]{2}";
-
-    private int FLAG = 0;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         Log.e("Activity Lifecycle", "OnCreate Started");
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        SharedPreferences saveBal = getSharedPreferences("BAL", Context.MODE_PRIVATE);
+        if (!saveBal.getString("BALANCE", "").equals(""))
+            BALANCE = saveBal.getString("BALANCE", "");
+
+        Log.e("LOG DEBUG", BALANCE);
+
+        if (BALANCE.equals("0.0")) {
+            final Dialog bal_dialog = new Dialog(context);
+            bal_dialog.setContentView(R.layout.balance_dialog);
+            bal_dialog.setTitle("Enter Bank Balance");
+
+            final EditText etBalance = (EditText) bal_dialog.findViewById(R.id.Balance);
+            Button saveBalance = (Button) bal_dialog.findViewById(R.id.saveBalance);
+            bal_dialog.show();
+
+            saveBalance.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    BALANCE = etBalance.getText().toString();
+                    if (BALANCE.trim().equals("")) {
+                        BALANCE = "0.0";
+                    }
+                    bal_dialog.dismiss();
+                }
+            });
+        }
 
         AdView mAdView = (AdView) findViewById(R.id.adView);
         AdRequest adRequest = new AdRequest.Builder().build();
@@ -122,8 +145,6 @@ public class MainActivity extends AppCompatActivity {
 
         spentAmount.setText("₹ " + cashSpent);
 
-        readMessages();
-
         CardView bankCard = (CardView) findViewById(R.id.bankCard);
         bankCard.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -139,6 +160,14 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         });
+
+        if (bankList.size() > 0) {
+            bankBalance.setText("₹ " + bankList.get(0).getMsgBal());
+            estimateDate.setText(bankList.get(0).getFormatDate());
+        } else {
+            bankBalance.setText("₹ " + "0.0");
+            estimateDate.setText(" ");
+        }
 
         CardView cashCard = (CardView) findViewById(R.id.cashCard);
         cashCard.setOnClickListener(new View.OnClickListener() {
@@ -207,9 +236,9 @@ public class MainActivity extends AppCompatActivity {
                 body = body.toLowerCase();
 
                 // some common keywords used in bank messages
-                if ((body.contains("debit") || body.contains("internet banking")) && !body.contains("recharge") && !body.contains("ola") && !body.contains("paytm")) {
+                if ((body.contains("debited") || body.contains("transactions")) && !body.contains("recharge")) {
                     t = "Personal Expenses";
-                } else if ((body.contains("credit") || body.contains("deposited")) && !body.contains("recharge") && !body.contains("ola") && !body.contains("paytm")) {
+                } else if ((body.contains("credited") || body.contains("deposited")) && !body.contains("recharge")) {
                     t = "Income";
                 }
 
@@ -217,14 +246,18 @@ public class MainActivity extends AppCompatActivity {
                 switch (t) {
                     case "Personal Expenses":
                         sms.setMsgType(t);
+                        String a = getAmount(body);
                         // getAmount is a method which gives the amount using pattern and matcher
-                        if (getAmount(body) != null) {
-                            sms.setMsgAmt(getAmount(body));
+                        if (a != null) {
+                            sms.setMsgAmt(a);
+                            sms.setMsgBal(Double.toString(Double.parseDouble(BALANCE) - Double.parseDouble(a)));
+                            BALANCE = sms.getMsgBal();
+                            bankList.add(0, sms);
                         } else {
                             c.moveToPrevious();
                             continue;
                         }
-                        if (FLAG == 1) {
+                        /*if (FLAG == 1) {
                             body = body.replaceFirst(pattern1, "");
                         } else if (FLAG == 2) {
                             body = body.replaceFirst(pattern2, "");
@@ -237,19 +270,23 @@ public class MainActivity extends AppCompatActivity {
                             c.moveToPrevious();
                             continue;
 
-                        }
+                        }*/
                         break;
 
                     // for type of transaction income first the amount is extracted and then the balance is extracted
                     case "Income":
                         sms.setMsgType(t);
-                        if (getAmount(body) != null) {
-                            sms.setMsgAmt(getAmount(body));
+                        String a1 = getAmount(body);
+                        if (a1 != null) {
+                            sms.setMsgAmt(a1);
+                            sms.setMsgBal(Double.toString(Double.parseDouble(BALANCE) + Double.parseDouble(a1)));
+                            BALANCE = sms.getMsgBal();
+                            bankList.add(0, sms);
                         } else {
                             c.moveToPrevious();
                             continue;
                         }
-                        if (FLAG == 1) {
+                        /*if (FLAG == 1) {
                             body = body.replaceFirst(pattern1, "");
                         } else if (FLAG == 2) {
                             body = body.replaceFirst(pattern2, "");
@@ -261,7 +298,7 @@ public class MainActivity extends AppCompatActivity {
                         } else {
                             c.moveToPrevious();
                             continue;
-                        }
+                        }*/
                         break;
                 }
                 c.moveToPrevious();
@@ -282,7 +319,9 @@ public class MainActivity extends AppCompatActivity {
 
     // getting amount by matching the pattern
     public String getAmount(String data) {
+        String pattern1 = "(inr)+[\\s]?+[0-9]*+[\\\\,]*+[0-9]*+[\\\\.][0-9]{2}";
         Pattern regex1 = Pattern.compile(pattern1);
+        String pattern2 = "(rs)+[\\\\.][\\s]*+[0-9]*+[\\\\,]*+[0-9]*+[\\\\.][0-9]{2}";
         Pattern regex2 = Pattern.compile(pattern2);
         Matcher matcher1 = regex1.matcher(data);
         Matcher matcher2 = regex2.matcher(data);
@@ -293,7 +332,7 @@ public class MainActivity extends AppCompatActivity {
                 a = a.replace("inr", "");
                 a = a.replace(" ", "");
                 a = a.replace(",", "");
-                FLAG = 1;
+//                FLAG = 1;
                 return a;
             } catch (Exception e) {
                 e.printStackTrace();
@@ -306,13 +345,13 @@ public class MainActivity extends AppCompatActivity {
                 a = a.replaceFirst(".", "");
                 a = a.replace(" ", "");
                 a = a.replace(",", "");
-                FLAG = 2;
+//                FLAG = 2;
                 return a;
             } catch (Exception e) {
                 e.printStackTrace();
             }
         }
-        FLAG = 0;
+//        FLAG = 0;
         return null;
     }
 
@@ -484,6 +523,11 @@ public class MainActivity extends AppCompatActivity {
         SharedPreferences.Editor editor = saveSpent.edit();
         editor.putString("SPENT", cashSpent);
         editor.commit();
+
+        SharedPreferences saveBal = getSharedPreferences("BAL", context.MODE_PRIVATE);
+        SharedPreferences.Editor editor1 = saveBal.edit();
+        editor1.putString("BALANCE", BALANCE);
+        editor1.commit();
     }
 
     public String getDate(long milliSeconds) {
