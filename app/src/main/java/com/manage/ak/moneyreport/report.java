@@ -5,8 +5,10 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.Toolbar;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -26,7 +28,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-public class report extends Activity {
+public class report extends AppCompatActivity {
 
     GraphView graph;
     RecyclerView recyclerView;
@@ -46,6 +48,9 @@ public class report extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.report);
+
+        Toolbar toolbar = (Toolbar) findViewById(R.id.tool_bar);
+        setSupportActionBar(toolbar);
 
         graph = (GraphView) findViewById(R.id.graph);
 
