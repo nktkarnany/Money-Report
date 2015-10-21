@@ -3,13 +3,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     tools:context=".MainActivity">
     <item
-        android:id="@+id/refresh"
-        android:icon="@drawable/ic_action_autorenew"
-        android:title="Read Sms"
-        app:showAsAction="ifRoom" />
-    <item
-        android:id="@+id/add"
-        android:icon="@drawable/ic_action_add"
-        android:title="Add Transaction"
-        app:showAsAction="ifRoom|withText" />
+        android:id="@+id/settings"
+        android:title="Settings"
+        app:showAsAction="collapseActionView" />
 </menu>

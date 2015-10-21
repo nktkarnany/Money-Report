@@ -9,6 +9,8 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -44,6 +46,8 @@ public class report extends AppCompatActivity {
 
     Context context = this;
 
+    private String color;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -68,7 +72,10 @@ public class report extends AppCompatActivity {
 
         Intent intent = getIntent();
         Bundle bundle = intent.getBundleExtra("DATA");
+        color = bundle.getString("color");
         smsList = (ArrayList<Sms>) bundle.getSerializable("SMS");
+
+        toolbar.setBackgroundColor(Color.parseColor(color));
 
         options.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
@@ -207,7 +214,23 @@ public class report extends AppCompatActivity {
             }
         });
 
+        getSupportActionBar().setHomeButtonEnabled(true);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+    }
 
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        return super.onCreateOptionsMenu(menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case android.R.id.home:
+                finish();
+                break;
+        }
+        return super.onOptionsItemSelected(item);
     }
 
     private void DrawGraph(List<Double> expenses, List<Long> expenseDay, String type) {
@@ -262,9 +285,9 @@ public class report extends AppCompatActivity {
         BarGraphSeries<DataPoint> series = new BarGraphSeries<>(dataPoints);
         graph.removeAllSeries();
         graph.addSeries(series);
-        series.setColor(Color.parseColor("#e51c23"));
+        series.setColor(Color.parseColor(color));
         series.setSpacing(10);
-        series.setValuesOnTopColor(Color.BLUE);
+        series.setValuesOnTopColor(Color.BLACK);
         series.setDrawValuesOnTop(true);
 
         series.setOnDataPointTapListener(new OnDataPointTapListener() {
@@ -288,7 +311,7 @@ public class report extends AppCompatActivity {
 
         graph.setTitle("Expense Chart");
         graph.setTitleTextSize(40);
-        graph.setTitleColor(Color.parseColor("#e51c23"));
+        graph.setTitleColor(Color.parseColor(color));
 
         graph.getViewport().setXAxisBoundsManual(true);
         graph.getViewport().setMinX(0);
@@ -298,8 +321,8 @@ public class report extends AppCompatActivity {
 
         graph.setBackgroundColor(Color.parseColor("#ffffff"));
         graph.getGridLabelRenderer().setGridColor(Color.TRANSPARENT);
-        graph.getGridLabelRenderer().setHorizontalLabelsColor(Color.RED);
-        graph.getGridLabelRenderer().setVerticalLabelsColor(Color.BLUE);
+        graph.getGridLabelRenderer().setHorizontalLabelsColor(Color.BLACK);
+        graph.getGridLabelRenderer().setVerticalLabelsColor(Color.BLACK);
 
         StaticLabelsFormatter s = new StaticLabelsFormatter(graph);
         s.setHorizontalLabels(w);

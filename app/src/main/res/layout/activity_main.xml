@@ -74,31 +74,35 @@
                 android:layout_height="wrap_content"
                 android:background="@android:color/white"
                 android:orientation="horizontal"
-                android:padding="10dp"
+                android:padding="4dp"
                 android:weightSum="2">
 
                 <TextView
+                    android:id="@+id/refresh"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_gravity="bottom"
                     android:layout_weight="1"
                     android:background="@android:color/white"
                     android:clickable="true"
+                    android:drawableStart="@drawable/ic_action_sms"
+                    android:gravity="center|start"
                     android:padding="10dp"
-                    android:text="Read Bank Sms"
+                    android:text="Add Sms"
                     android:textAppearance="@style/Base.TextAppearance.AppCompat.Widget.Button"
                     android:textColor="@color/colorPrimary" />
 
+
                 <TextView
+                    android:id="@+id/bankReport"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_gravity="bottom"
                     android:layout_weight="1"
                     android:background="@android:color/transparent"
                     android:clickable="true"
-                    android:gravity="end"
+                    android:drawableEnd="@drawable/ic_action_bargraph"
+                    android:gravity="center|end"
                     android:padding="10dp"
-                    android:text="Generate Report"
+                    android:text="View Report"
                     android:textAppearance="@style/Base.TextAppearance.AppCompat.Widget.Button"
                     android:textColor="@color/colorPrimary" />
             </LinearLayout>
@@ -163,30 +167,35 @@
                 android:layout_height="wrap_content"
                 android:background="@android:color/white"
                 android:orientation="horizontal"
-                android:padding="10dp"
+                android:padding="4dp"
                 android:weightSum="2">
 
                 <TextView
+                    android:id="@+id/addCash"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="bottom"
                     android:layout_weight="1"
                     android:background="@android:color/white"
                     android:clickable="true"
+                    android:drawableStart="@drawable/ic_action_add1"
+                    android:gravity="start|center"
                     android:padding="10dp"
-                    android:text="Add Cash Transaction"
+                    android:text="Add Txn"
                     android:textAppearance="@style/Base.TextAppearance.AppCompat.Widget.Button"
                     android:textColor="@color/colorPrimary" />
 
                 <TextView
+                    android:id="@+id/cashReport"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:background="@android:color/transparent"
                     android:clickable="true"
-                    android:gravity="right"
+                    android:drawableEnd="@drawable/ic_action_bargraph"
+                    android:gravity="center|end"
                     android:padding="10dp"
-                    android:text="Generate Report"
+                    android:text="View Report"
                     android:textAppearance="@style/Base.TextAppearance.AppCompat.Widget.Button"
                     android:textColor="@color/colorPrimary" />
             </LinearLayout>

@@ -19,8 +19,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_below="@+id/tool_bar"
-        android:layout_margin="10sp"
         android:background="@android:color/background_light"
-        android:padding="10sp" />
+        android:padding="6sp" />
 
 </RelativeLayout>

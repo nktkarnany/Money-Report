@@ -15,6 +15,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
+// activity to show cash transactions in the bank_transactions.xml layout
 public class BankTransactions extends AppCompatActivity {
 
     private Context context = this;
@@ -24,26 +25,25 @@ public class BankTransactions extends AppCompatActivity {
 
     RecyclerView readMessages;
 
-    private MyAdapter myAdapter;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.bank_transactions);
 
+        // To add a custom action bar
         Toolbar toolbar = (Toolbar) findViewById(R.id.tool_bar);
         setSupportActionBar(toolbar);
 
         readMessages = (RecyclerView) findViewById(R.id.readMessages);
-
         readMessages.setHasFixedSize(true);
         readMessages.setLayoutManager(new LinearLayoutManager(this));
 
+        // bankList received from MainActivity class
         Intent intent = getIntent();
         Bundle bundle = intent.getBundleExtra("DATA");
         bankList = (ArrayList<Sms>) bundle.getSerializable("SMS");
 
-        myAdapter = new MyAdapter(bankList, context);
+        MyAdapter myAdapter = new MyAdapter(bankList, context);
         readMessages.setAdapter(myAdapter);
 
         getSupportActionBar().setHomeButtonEnabled(true);
@@ -63,6 +63,7 @@ public class BankTransactions extends AppCompatActivity {
             case android.R.id.home:
                 finish();
                 break;
+            // click on the graph icon starts the report activity
             case R.id.forward:
                 List<Sms> smsList1 = new ArrayList<>();
                 for (Sms s : bankList) {
@@ -70,11 +71,13 @@ public class BankTransactions extends AppCompatActivity {
                         smsList1.add(s);
                     }
                 }
-                // when forward action button is clicked a bar chart is displayed whose values are calculated here
+                // when graph action button is clicked a bar chart is displayed whose values are calculated here
                 if (smsList1.size() > 0) {
                     Intent i = new Intent(BankTransactions.this, report.class);
                     Bundle b = new Bundle();
                     b.putSerializable("SMS", (Serializable) smsList1);
+                    // color is sent to the report activity depending on click of bank card
+                    b.putString("color", "#6ed036");
                     i.putExtra("DATA", b);
                     startActivity(i);
                 } else {

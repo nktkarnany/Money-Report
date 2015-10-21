@@ -6,7 +6,7 @@
 
     <EditText
         android:id="@+id/Balance"
-        style="@style/Base.V12.Widget.AppCompat.EditText"
+        style="@style/Base.Widget.AppCompat.EditText"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:hint="INR"
@@ -17,9 +17,10 @@
         android:id="@+id/saveBalance"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="#e51c23"
+        android:background="#6ed036"
         android:padding="10dp"
         android:text="SAVE"
+        android:textAppearance="@style/Base.TextAppearance.AppCompat.Large"
         android:textColor="#ffffff" />
 
 </LinearLayout>

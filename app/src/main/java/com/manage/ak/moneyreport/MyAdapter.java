@@ -9,6 +9,7 @@ import android.widget.TextView;
 
 import java.util.List;
 
+// Adapter to connect row.xml with the recycler view
 public class MyAdapter extends RecyclerView.Adapter<MyAdapter.ViewHolder> {
 
     private Context context;

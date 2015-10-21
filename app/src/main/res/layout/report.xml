@@ -9,7 +9,6 @@
         android:id="@+id/tool_bar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@color/colorPrimaryDark"
         android:elevation="4sp"
         android:fitsSystemWindows="true"
         android:theme="@style/Base.ThemeOverlay.AppCompat.Dark" />
@@ -17,21 +16,28 @@
     <com.jjoe64.graphview.GraphView
         android:id="@+id/graph"
         android:layout_width="match_parent"
-        android:layout_height="260sp"
+        android:layout_height="240sp"
         android:layout_below="@+id/tool_bar" />
 
-    <Spinner
-        android:id="@+id/graphOptions"
-        android:layout_width="wrap_content"
+    <LinearLayout
+        android:id="@+id/spinner"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_below="@+id/graph"
-        android:gravity="center" />
+        android:gravity="center">
+
+        <Spinner
+            android:id="@+id/graphOptions"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+
+    </LinearLayout>
 
     <LinearLayout
         android:id="@+id/linear"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/graphOptions"
+        android:layout_below="@+id/spinner"
         android:background="@android:color/background_light"
         android:orientation="horizontal"
         android:weightSum="2">
