@@ -11,7 +11,7 @@
         android:theme="@style/AppTheme">
         <activity
             android:name=".MainActivity"
-            android:label="Money Manger">
+            android:label="Money Report">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

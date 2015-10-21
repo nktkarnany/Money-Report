@@ -7,9 +7,11 @@ import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.Window;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
@@ -23,6 +25,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+// activity to show cash transactions in the cash_transactions.xml layout
 public class CashTransactions extends AppCompatActivity {
 
     private Context context = this;
@@ -44,8 +47,11 @@ public class CashTransactions extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.cash_transactions);
 
-        readCash = (RecyclerView) findViewById(R.id.readCash);
+        // To add a custom action bar
+        Toolbar toolbar = (Toolbar) findViewById(R.id.tool_bar);
+        setSupportActionBar(toolbar);
 
+        readCash = (RecyclerView) findViewById(R.id.readCash);
         readCash.setHasFixedSize(true);
         readCash.setLayoutManager(new LinearLayoutManager(this));
 
@@ -61,6 +67,7 @@ public class CashTransactions extends AppCompatActivity {
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
     }
 
+    // setting the result cashList back to the main activity on back button press
     @Override
     public void onBackPressed() {
         Intent i = new Intent();
@@ -81,6 +88,7 @@ public class CashTransactions extends AppCompatActivity {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
+            // setting the result cashList back to the main activity on back button press
             case android.R.id.home:
                 Intent intent = new Intent();
                 Bundle bundle = new Bundle();
@@ -92,8 +100,9 @@ public class CashTransactions extends AppCompatActivity {
                 break;
             case R.id.add:
                 final Dialog dialog = new Dialog(context);
+                dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+                dialog.setCancelable(true);
                 dialog.setContentView(R.layout.add_dialog);
-                dialog.setTitle("Add Cash Transaction");
 
                 final EditText addAmt = (EditText) dialog.findViewById(R.id.addAmt);
 
@@ -128,8 +137,14 @@ public class CashTransactions extends AppCompatActivity {
                             amt = "0.0";
                         }
 
-                        switch (type) {
-                            case "Personal Expenses":
+                        String t = "";
+                        if (type.equals("Personal Expenses") || type.equals("Food") || type.equals("Transport"))
+                            t = "DR";
+                        else if (type.equals("Income") || type.equals("Salary"))
+                            t = "CR";
+
+                        switch (t) {
+                            case "DR":
                                 // index will be zero if there are no messages in the list so balance will be equal to the amount
                                 if (index >= 0) {
                                     balance = cashList.get(0).getMsgBal();
@@ -140,39 +155,7 @@ public class CashTransactions extends AppCompatActivity {
                                     balance = "-" + amt;
                                 }
                                 break;
-                            case "Food":
-                                // index will be zero if there are no messages in the list so balance will be equal to the amount
-                                if (index >= 0) {
-                                    balance = cashList.get(0).getMsgBal();
-                                    bal = Double.parseDouble(balance) - Double.parseDouble(amt);
-                                    balance = Double.toString(bal);
-                                } else {
-                                    // negative in case of expenses
-                                    balance = "-" + amt;
-                                }
-                                break;
-                            case "Transport":
-                                // index will be zero if there are no messages in the list so balance will be equal to the amount
-                                if (index >= 0) {
-                                    balance = cashList.get(0).getMsgBal();
-                                    bal = Double.parseDouble(balance) - Double.parseDouble(amt);
-                                    balance = Double.toString(bal);
-                                } else {
-                                    // negative in case of expenses
-                                    balance = "-" + amt;
-                                }
-                                break;
-                            case "Salary":
-                                if (index >= 0) {
-                                    balance = cashList.get(0).getMsgBal();
-                                    bal = Double.parseDouble(balance) + Double.parseDouble(amt);
-                                    balance = Double.toString(bal);
-                                } else {
-                                    // positive in case of income
-                                    balance = amt;
-                                }
-                                break;
-                            case "Income":
+                            case "CR":
                                 if (index >= 0) {
                                     balance = cashList.get(0).getMsgBal();
                                     bal = Double.parseDouble(balance) + Double.parseDouble(amt);
@@ -186,12 +169,16 @@ public class CashTransactions extends AppCompatActivity {
                         // finally the sms object is added to the list
                         // the date in this sms object is set ot the current date of the system
                         long time = System.currentTimeMillis();
+
                         Sms s = new Sms(type, amt, Long.toString(time), balance);
                         s.setFormatDate(getDate(time));
                         cashList.add(0, s);
+
                         dialog.dismiss();
+
                         readCash.scrollToPosition(0);
                         myAdapter.notifyItemInserted(0);
+
                         Toast.makeText(CashTransactions.this, "Transaction Added", Toast.LENGTH_SHORT).show();
                         if (s.getMsgType().equals("Personal Expenses") || s.getMsgType().equals("Food") || s.getMsgType().equals("Transport")) {
                             cashSpent = Double.toString(Double.parseDouble(cashSpent) + Double.parseDouble(amt));
@@ -211,6 +198,8 @@ public class CashTransactions extends AppCompatActivity {
                     Intent i = new Intent(CashTransactions.this, report.class);
                     Bundle b = new Bundle();
                     b.putSerializable("SMS", (Serializable) smsList1);
+                    // color is sent to the report activity depending on click of bank or cash card
+                    b.putString("color", "#467fd9");
                     i.putExtra("DATA", b);
                     startActivity(i);
                 } else {

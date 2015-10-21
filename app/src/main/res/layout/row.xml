@@ -3,14 +3,16 @@
     style="@style/CardView"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:elevation="4dp">
+    android:clickable="true"
+    android:elevation="4dp"
+    android:foreground="?android:selectableItemBackground">
 
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginBottom="2dp"
-        android:padding="10dp"
-        android:background="@android:color/background_light">
+        android:background="@android:color/background_light"
+        android:padding="10dp">
 
         <TextView
             android:id="@+id/smsType"
