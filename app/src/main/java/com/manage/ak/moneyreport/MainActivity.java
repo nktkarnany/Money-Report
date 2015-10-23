@@ -44,32 +44,37 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     private Context context = this;
 
-    // A list of sms required
+    // A list to store bank list and cash sms
     private List<Sms> bankList = new ArrayList<>();
     private List<Sms> cashList = new ArrayList<>();
 
+    // Main balance in the bank
     private String BALANCE = "0.0";
+    // Total cash spent from cash in hand
     private String CASHSPENT = "0.0";
 
     // variables used to store and calculate balance for the cash transactions
     private String amt, type, balance;
     private double bal;
 
-    // output stream file in which sms are saved
-    private String filename = "messages";
-    private String filename1 = "Cash Transactions";
+    // output stream file in which bank and cash sms are saved
+    private String BANK_FILE = "Bank Transactions";
+    private String CASH_FILE = "Cash Transactions";
 
+    // bank balance and date TextView inside the bank card
     private TextView bankBalance;
     private TextView estimateDate;
+
+    // spent amount and cash in hand inside the cash card
     private TextView spentAmount;
     private TextView cashBalance;
 
+    // bank card and cash card
     private CardView bankCard;
     private CardView cashCard;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        Log.e("Activity Lifecycle", "OnCreate Started");
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
@@ -77,9 +82,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         Toolbar toolbar = (Toolbar) findViewById(R.id.tool_bar);
         setSupportActionBar(toolbar);
 
-        SharedPreferences saveBal = getSharedPreferences("BAL", Context.MODE_PRIVATE);
-        if (!saveBal.getString("BALANCE", "").equals(""))
-            BALANCE = saveBal.getString("BALANCE", "");
+        SharedPreferences savedData = getSharedPreferences("KEY", Context.MODE_PRIVATE);
+        if (!savedData.getString("BALANCE", "").equals(""))
+            BALANCE = savedData.getString("BALANCE", "");
 
         if (BALANCE.equals("0.0")) {
             final Dialog bal_dialog = new Dialog(context);
@@ -89,7 +94,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             final Sms smsBal = new Sms();
             smsBal.setMsgType("Bank Balance");
             smsBal.setMsgDate("1433097000000");
-            smsBal.setFormatDate(getDate(Long.parseLong("1433097000000")));
 
             bal_dialog.setTitle("Bank Bal as of " + smsBal.getFormatDate());
 
@@ -126,7 +130,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         try {
             // file input stream is used to open a file for reading
-            FileInputStream f = context.openFileInput(filename);
+            FileInputStream f = context.openFileInput(BANK_FILE);
             // object input stream is used to read object from the file opened
             ObjectInputStream i = new ObjectInputStream(f);
             // object read is in the form of list<Sms> so iterate over the list to extract all Sms objects.
@@ -141,7 +145,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         try {
             // file input stream is used to open a file for reading
-            FileInputStream f = context.openFileInput(filename1);
+            FileInputStream f = context.openFileInput(CASH_FILE);
             // object input stream is used to read object from the file opened
             ObjectInputStream i = new ObjectInputStream(f);
             // object read is in the form of list<Sms> so iterate over the list to extract all Sms objects.
@@ -154,9 +158,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             e.printStackTrace();
         }
 
-        SharedPreferences saveSpent = getSharedPreferences("KEY", Context.MODE_PRIVATE);
-        if (!saveSpent.getString("SPENT", "").equals(""))
-            CASHSPENT = saveSpent.getString("SPENT", "");
+        if (!savedData.getString("SPENT", "").equals(""))
+            CASHSPENT = savedData.getString("SPENT", "");
 
         bankBalance = (TextView) findViewById(R.id.bankBalance);
         estimateDate = (TextView) findViewById(R.id.estimateDate);
@@ -164,13 +167,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         spentAmount = (TextView) findViewById(R.id.spendAmount);
         cashBalance = (TextView) findViewById(R.id.cashBalance);
 
+        spentAmount.setText("₹ " + CASHSPENT);
+
         if (cashList.size() > 0) {
             cashBalance.setText("In Hand:   ₹ " + cashList.get(0).getMsgBal());
         } else {
             cashBalance.setText("In Hand:   ₹ " + "0.0");
         }
-
-        spentAmount.setText("₹ " + CASHSPENT);
 
         if (bankList.size() > 0) {
             bankBalance.setText("₹ " + bankList.get(0).getMsgBal());
@@ -225,7 +228,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 //                startActivityForResult(cash, 1);
                 break;
             case R.id.refresh:
-                Toast.makeText(MainActivity.this, "Transactions Added From Inbox", Toast.LENGTH_SHORT).show();
+                Toast.makeText(MainActivity.this, "Reading Transaction sms...", Toast.LENGTH_SHORT).show();
                 readMessages();
                 break;
             case R.id.addCash:
@@ -300,7 +303,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         // the date in this sms object is set ot the current date of the system
                         long time = System.currentTimeMillis();
                         Sms s = new Sms(type, amt, Long.toString(time), balance);
-                        s.setFormatDate(getDate(time));
                         cashList.add(0, s);
                         dialog.dismiss();
                         if (s.getMsgType().equals("Personal Expenses") || s.getMsgType().equals("Food") || s.getMsgType().equals("Transport")) {
@@ -418,7 +420,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
                 // date is set to the sms object
                 sms.setMsgDate(date);
-                sms.setFormatDate(getDate(Long.parseLong(date)));
 
                 body = body.toLowerCase();
 
@@ -527,9 +528,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     public void save() {
+        // saving the bank list
         try {
             // file output stream is used to open a file for writing
-            FileOutputStream f = context.openFileOutput(filename, Context.MODE_PRIVATE);
+            FileOutputStream f = context.openFileOutput(BANK_FILE, Context.MODE_PRIVATE);
             // object output stream is used to write object to the file opened
             ObjectOutputStream o = new ObjectOutputStream(f);
             o.writeObject(bankList);
@@ -538,9 +540,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         } catch (Exception e) {
             e.printStackTrace();
         }
+
+        // saving the cash list
         try {
             // file output stream is used to open a file for writing
-            FileOutputStream f = context.openFileOutput(filename1, Context.MODE_PRIVATE);
+            FileOutputStream f = context.openFileOutput(CASH_FILE, Context.MODE_PRIVATE);
             // object output stream is used to write object to the file opened
             ObjectOutputStream o = new ObjectOutputStream(f);
             o.writeObject(cashList);
@@ -550,20 +554,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             e.printStackTrace();
         }
 
+        // saving the total cash spent and the bank balance
         SharedPreferences saveSpent = getSharedPreferences("KEY", Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = saveSpent.edit();
         editor.putString("SPENT", CASHSPENT);
+        editor.putString("BALANCE", BALANCE);
         editor.apply();
-
-        SharedPreferences saveBal = getSharedPreferences("BAL", Context.MODE_PRIVATE);
-        SharedPreferences.Editor editor1 = saveBal.edit();
-        editor1.putString("BALANCE", BALANCE);
-        editor1.apply();
-    }
-
-    public String getDate(long milliSeconds) {
-        // Create a DateFormatter object for displaying date in specified format.
-        SimpleDateFormat formatter = new SimpleDateFormat("dd/MMM/yy");
-        return formatter.format(new Date(milliSeconds));
     }
 }

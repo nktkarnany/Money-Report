@@ -171,7 +171,6 @@ public class CashTransactions extends AppCompatActivity {
                         long time = System.currentTimeMillis();
 
                         Sms s = new Sms(type, amt, Long.toString(time), balance);
-                        s.setFormatDate(getDate(time));
                         cashList.add(0, s);
 
                         dialog.dismiss();

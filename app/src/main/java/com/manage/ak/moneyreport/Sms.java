@@ -64,11 +64,7 @@ public class Sms implements Serializable {
     }
 
     public String getFormatDate() {
-        return this.formatDate;
-    }
-
-    public void setFormatDate(String formatDate) {
-        this.formatDate = formatDate;
+        return getDate(Long.parseLong(this.msgDate));
     }
 
     public String getDay() {
@@ -81,5 +77,10 @@ public class Sms implements Serializable {
 
     public String getMonth() {
         return new SimpleDateFormat("MMM").format(new Date(Long.parseLong(this.msgDate))) + "'" + new SimpleDateFormat("yy").format(new Date(Long.parseLong(this.msgDate)));
+    }
+
+    public String getDate(long milliSeconds) {
+        // Create a DateFormatter object for displaying date in specified format.
+        return new SimpleDateFormat("dd/MMM/yy").format(new Date(milliSeconds));
     }
 }
