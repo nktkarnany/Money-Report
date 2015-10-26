@@ -53,7 +53,6 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.ViewHolder> {
     public void onBindViewHolder(ViewHolder holder, int position) {
         String t = smsList.get(position).getMsgType();
         holder.smsType.setText(t);
-        String color;
         if (t.equals("Personal Expenses") || t.equals("Food") || t.equals("Transport")) {
             holder.smsAmt.setTextColor(Color.RED);
             holder.typeImage.setBackgroundResource(R.drawable.ic_action_arrow_top);

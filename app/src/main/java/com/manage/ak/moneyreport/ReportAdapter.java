@@ -1,6 +1,7 @@
 package com.manage.ak.moneyreport;
 
 import android.content.Context;
+import android.graphics.Color;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -44,6 +45,7 @@ public class ReportAdapter extends RecyclerView.Adapter<ReportAdapter.ViewHolder
     public void onBindViewHolder(ViewHolder holder, int position) {
         holder.reportType.setText(reportList.get(position).getReportType());
         holder.reportAmt.setText("₹ " + reportList.get(position).getReportAmt());
+        holder.reportAmt.setTextColor(Color.RED);
         if (reportList.get(0).getDayType().equals("Daily"))
             holder.reportTime.setText(reportList.get(position).getReportTime());
         else if (reportList.get(0).getDayType().equals("Weekly"))

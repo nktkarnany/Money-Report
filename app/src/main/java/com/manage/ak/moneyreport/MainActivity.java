@@ -6,13 +6,10 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.net.Uri;
-import android.support.v4.app.ActivityCompat;
-import android.support.v4.app.ActivityOptionsCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -25,17 +22,16 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
-/*import com.google.android.gms.ads.AdRequest;
-import com.google.android.gms.ads.AdView;*/
+import com.google.android.gms.ads.AdRequest;
+import com.google.android.gms.ads.AdSize;
+import com.google.android.gms.ads.AdView;
 
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -68,10 +64,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     // spent amount and cash in hand inside the cash card
     private TextView spentAmount;
     private TextView cashBalance;
-
-    // bank card and cash card
-    private CardView bankCard;
-    private CardView cashCard;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -124,9 +116,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             });
         }
 
-        /*AdView mAdView = (AdView) findViewById(R.id.adView);
-        AdRequest adRequest = new AdRequest.Builder().build();
-        mAdView.loadAd(adRequest);*/
+        AdView mAdView = (AdView) findViewById(R.id.adView);
+        AdRequest adRequest = new AdRequest.Builder()
+//                .addTestDevice("AAE5999327EA1F02B184A568C2316129")
+                .build();
+        mAdView.loadAd(adRequest);
 
         try {
             // file input stream is used to open a file for reading
@@ -183,10 +177,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             estimateDate.setText(" ");
         }
 
-        bankCard = (CardView) findViewById(R.id.bankCard);
+        CardView bankCard = (CardView) findViewById(R.id.bankCard);
         bankCard.setOnClickListener(this);
 
-        cashCard = (CardView) findViewById(R.id.cashCard);
+        CardView cashCard = (CardView) findViewById(R.id.cashCard);
         cashCard.setOnClickListener(this);
 
         TextView refresh = (TextView) findViewById(R.id.refresh);
@@ -207,25 +201,22 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         switch (v.getId()) {
             case R.id.bankCard:
                 if (bankList.size() > 0) {
-                    ActivityOptionsCompat options = ActivityOptionsCompat.makeSceneTransitionAnimation(MainActivity.this, bankCard, "BankTransactions");
                     Intent bank = new Intent(MainActivity.this, BankTransactions.class);
                     Bundle b = new Bundle();
                     b.putSerializable("SMS", (Serializable) bankList);
                     bank.putExtra("DATA", b);
-                    ActivityCompat.startActivity(MainActivity.this, bank, options.toBundle());
+                    startActivity(bank);
                 } else {
                     Toast.makeText(MainActivity.this, "No Bank Transactions to display", Toast.LENGTH_SHORT).show();
                 }
                 break;
             case R.id.cashCard:
-                ActivityOptionsCompat options = ActivityOptionsCompat.makeSceneTransitionAnimation(MainActivity.this, cashCard, "CashTransactions");
                 Intent cash = new Intent(MainActivity.this, CashTransactions.class);
                 Bundle b = new Bundle();
                 b.putSerializable("CASH", (Serializable) cashList);
                 b.putString("Spent", CASHSPENT);
                 cash.putExtra("DATA", b);
-                ActivityCompat.startActivityForResult(MainActivity.this, cash, 1, options.toBundle());
-//                startActivityForResult(cash, 1);
+                startActivityForResult(cash, 1);
                 break;
             case R.id.refresh:
                 Toast.makeText(MainActivity.this, "Reading Transaction sms...", Toast.LENGTH_SHORT).show();

@@ -40,6 +40,8 @@
         android:layout_below="@+id/spinner"
         android:background="@android:color/background_light"
         android:orientation="horizontal"
+        android:paddingEnd="20dp"
+        android:paddingStart="20dp"
         android:weightSum="2">
 
         <TextView
@@ -47,8 +49,8 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:padding="10dp"
-            android:text="List of Expenses:"
-            android:textSize="20sp"
+            android:text="Expenses:"
+            android:textSize="18sp"
             android:textStyle="bold|italic"
             android:typeface="sans" />
 
@@ -59,15 +61,26 @@
             android:layout_weight="1"
             android:gravity="end"
             android:padding="10dp"
-            android:textStyle="bold|italic"
+            android:textSize="15sp"
             android:typeface="monospace" />
     </LinearLayout>
+
+    <View
+        android:id="@+id/border"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_below="@+id/linear"
+        android:layout_marginEnd="20dp"
+        android:layout_marginStart="20dp"
+        android:background="@color/material_grey_300" />
 
     <android.support.v7.widget.RecyclerView
         android:id="@+id/report_list"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/linear"
-        android:background="@android:color/background_light" />
+        android:layout_below="@+id/border"
+        android:background="@android:color/background_light"
+        android:paddingEnd="20dp"
+        android:paddingStart="20dp" />
 
 </RelativeLayout>

@@ -1,4 +1,5 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:ads="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -21,8 +22,7 @@
         android:layout_height="wrap_content"
         android:layout_margin="6dp"
         android:clickable="true"
-        android:foreground="?android:selectableItemBackground"
-        android:transitionName="BankTransactions">
+        android:foreground="?android:selectableItemBackground">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -35,7 +35,7 @@
                 android:layout_height="wrap_content"
                 android:background="#6ed036"
                 android:paddingBottom="10dp"
-                android:paddingStart="20dp"
+                android:paddingLeft="20dp"
                 android:paddingTop="20dp"
                 android:text="Bank Balance"
                 android:textAppearance="@style/Base.TextAppearance.AppCompat.Headline"
@@ -48,7 +48,7 @@
                 android:background="#6ed036"
                 android:gravity="end"
                 android:paddingBottom="5dp"
-                android:paddingEnd="20dp"
+                android:paddingRight="20dp"
                 android:paddingTop="20dp"
                 android:text="AMOUNT"
                 android:textAppearance="@style/Base.TextAppearance.AppCompat.Large"
@@ -62,7 +62,7 @@
                 android:background="#6ed036"
                 android:gravity="end"
                 android:paddingBottom="20dp"
-                android:paddingEnd="20dp"
+                android:paddingRight="20dp"
                 android:paddingTop="5dp"
                 android:text="DATE"
                 android:textAppearance="@style/Base.TextAppearance.AppCompat.Large"
@@ -84,7 +84,7 @@
                     android:layout_weight="1"
                     android:background="@android:color/white"
                     android:clickable="true"
-                    android:drawableStart="@drawable/ic_action_sms"
+                    android:drawableLeft="@drawable/ic_action_sms"
                     android:gravity="center|start"
                     android:padding="10dp"
                     android:text="Add Sms"
@@ -99,7 +99,7 @@
                     android:layout_weight="1"
                     android:background="@android:color/transparent"
                     android:clickable="true"
-                    android:drawableEnd="@drawable/ic_action_bargraph"
+                    android:drawableRight="@drawable/ic_action_bargraph"
                     android:gravity="center|end"
                     android:padding="10dp"
                     android:text="View Report"
@@ -115,8 +115,7 @@
         android:layout_height="wrap_content"
         android:layout_margin="6dp"
         android:clickable="true"
-        android:foreground="?android:selectableItemBackground"
-        android:transitionName="CashTransactions">
+        android:foreground="?android:selectableItemBackground">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -129,7 +128,7 @@
                 android:layout_height="wrap_content"
                 android:background="#467fd9"
                 android:paddingBottom="10dp"
-                android:paddingStart="20dp"
+                android:paddingLeft="20dp"
                 android:paddingTop="20dp"
                 android:text="Cash Spent"
                 android:textAppearance="@style/Base.TextAppearance.AppCompat.Headline"
@@ -142,7 +141,7 @@
                 android:background="#467fd9"
                 android:gravity="end"
                 android:paddingBottom="5dp"
-                android:paddingEnd="20dp"
+                android:paddingRight="20dp"
                 android:paddingTop="20dp"
                 android:text="AMOUNT"
                 android:textAppearance="@style/Base.TextAppearance.AppCompat.Large"
@@ -155,7 +154,7 @@
                 android:background="#467fd9"
                 android:gravity="end"
                 android:paddingBottom="20dp"
-                android:paddingEnd="20dp"
+                android:paddingRight="20dp"
                 android:paddingTop="5dp"
                 android:text="Bal"
                 android:textAppearance="@style/TextAppearance.AppCompat.Large"
@@ -178,7 +177,7 @@
                     android:layout_weight="1"
                     android:background="@android:color/white"
                     android:clickable="true"
-                    android:drawableStart="@drawable/ic_action_add1"
+                    android:drawableLeft="@drawable/ic_action_add1"
                     android:gravity="start|center"
                     android:padding="10dp"
                     android:text="Add Txn"
@@ -192,7 +191,7 @@
                     android:layout_weight="1"
                     android:background="@android:color/transparent"
                     android:clickable="true"
-                    android:drawableEnd="@drawable/ic_action_bargraph"
+                    android:drawableRight="@drawable/ic_action_bargraph"
                     android:gravity="center|end"
                     android:padding="10dp"
                     android:text="View Report"
@@ -202,13 +201,12 @@
         </LinearLayout>
     </android.support.v7.widget.CardView>
 
-    <!--<com.google.android.gms.ads.AdView
+    <com.google.android.gms.ads.AdView
         android:id="@+id/adView"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:layout_centerHorizontal="true"
         ads:adSize="BANNER"
-        ads:adUnitId="ca-app-pub-6071825018910487/4254667452" />-->
+        ads:adUnitId="ca-app-pub-6071825018910487/4254667452" />
+
 
 </LinearLayout>

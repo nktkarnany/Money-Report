@@ -11,8 +11,7 @@
         android:background="#467fd9"
         android:elevation="4sp"
         android:fitsSystemWindows="true"
-        android:theme="@style/Base.ThemeOverlay.AppCompat.Dark"
-        android:transitionName="CashTransactions" />
+        android:theme="@style/Base.ThemeOverlay.AppCompat.Dark" />
 
     <android.support.v7.widget.RecyclerView
         android:id="@+id/readCash"
