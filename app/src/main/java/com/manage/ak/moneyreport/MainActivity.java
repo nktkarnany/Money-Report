@@ -170,9 +170,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         switch (v.getId()) {
             case R.id.bankCard:
                 if (bankList.size() > 0) {
-                    Intent bank = new Intent(MainActivity.this, BankTransactions.class);
+                    Intent bank = new Intent(MainActivity.this, Transactions.class);
                     Bundle b = new Bundle();
                     b.putSerializable("SMS", (Serializable) bankList);
+                    b.putString("CARD", "BANK_CARD");
+                    b.putString("COLOR", "#6ed036");
                     bank.putExtra("DATA", b);
                     startActivity(bank);
                 } else {
@@ -180,10 +182,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 }
                 break;
             case R.id.cashCard:
-                Intent cash = new Intent(MainActivity.this, CashTransactions.class);
+                Intent cash = new Intent(MainActivity.this, Transactions.class);
                 Bundle b = new Bundle();
                 b.putSerializable("CASH", (Serializable) cashList);
-                b.putString("Spent", CASHSPENT);
+                b.putString("CARD", "CASH_CARD");
+                b.putString("COLOR", "#467fd9");
+                b.putString("SPENT", CASHSPENT);
                 cash.putExtra("DATA", b);
                 startActivityForResult(cash, 1);
                 break;
