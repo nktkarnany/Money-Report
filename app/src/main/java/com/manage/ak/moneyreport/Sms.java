@@ -26,6 +26,14 @@ public class Sms implements Serializable {
         return this.msgType;
     }
 
+    public String getDrOrCr() {
+        if (this.msgType.equals("Personal Expenses") || this.msgType.equals("Food") || this.msgType.equals("Transport"))
+            return "DR";
+        else
+            return "CR";
+
+    }
+
     public String getMsgAmt() {
         return this.msgAmt;
     }

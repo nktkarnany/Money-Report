@@ -20,9 +20,7 @@ import android.widget.Spinner;
 import android.widget.Toast;
 
 import java.io.Serializable;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 // activity to show cash transactions in the cash_transactions.xml layout
@@ -35,7 +33,7 @@ public class CashTransactions extends AppCompatActivity {
 
     // variables used to store and calculate balance in the action bar add button
     private String amt, type, balance;
-    private double bal;
+
     private String cashSpent = "0.0";
 
     RecyclerView readCash;
@@ -72,13 +70,7 @@ public class CashTransactions extends AppCompatActivity {
     // setting the result cashList back to the main activity on back button press
     @Override
     public void onBackPressed() {
-        Intent i = new Intent();
-        Bundle b = new Bundle();
-        b.putSerializable("cash", (Serializable) cashList);
-        b.putString("SPENT", cashSpent);
-        i.putExtra("Result", b);
-        setResult(1, i);
-        finish();
+        sendDataBack();
     }
 
     @Override
@@ -92,106 +84,33 @@ public class CashTransactions extends AppCompatActivity {
         switch (item.getItemId()) {
             // setting the result cashList back to the main activity on back button press
             case android.R.id.home:
-                Intent intent = new Intent();
-                Bundle bundle = new Bundle();
-                bundle.putSerializable("cash", (Serializable) cashList);
-                bundle.putString("SPENT", cashSpent);
-                intent.putExtra("Result", bundle);
-                setResult(1, intent);
-                finish();
+                sendDataBack();
                 break;
             case R.id.add:
-                final Dialog dialog = new Dialog(context);
-                dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
-                dialog.setCancelable(true);
-                dialog.setContentView(R.layout.add_dialog);
-
-                final EditText addAmt = (EditText) dialog.findViewById(R.id.addAmt);
-
-                final Spinner description = (Spinner) dialog.findViewById(R.id.description);
-                ArrayAdapter<CharSequence> desc_adapter = ArrayAdapter.createFromResource(this, R.array.desc_array, android.R.layout.simple_spinner_item);
-                desc_adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-                description.setAdapter(desc_adapter);
-                description.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-                    @Override
-                    public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                        type = parent.getItemAtPosition(position).toString();
-                    }
-
-                    @Override
-                    public void onNothingSelected(AdapterView<?> parent) {
-                        type = parent.getItemAtPosition(0).toString();
-                    }
-                });
-
-                Button save = (Button) dialog.findViewById(R.id.save);
-
+                final AddDialog dialog = new AddDialog(context, cashList);
                 dialog.show();
-
-                // set onclick listener to add button in the custom dialog box to add transaction
-                save.setOnClickListener(new View.OnClickListener() {
+                dialog.setOnSaveClickListener(new AddDialog.OnSaveClickListener() {
                     @Override
-                    public void onClick(View v) {
-                        // then according to the id of check button balance is calculated
-                        int index = cashList.size() - 1;
-                        amt = addAmt.getText().toString();
-                        if (amt.trim().equals("")) {
-                            amt = "0.0";
-                        }
-
-                        String t = "";
-                        if (type.equals("Personal Expenses") || type.equals("Food") || type.equals("Transport"))
-                            t = "DR";
-                        else if (type.equals("Income") || type.equals("Salary"))
-                            t = "CR";
-
-                        switch (t) {
-                            case "DR":
-                                // index will be zero if there are no messages in the list so balance will be equal to the amount
-                                if (index >= 0) {
-                                    balance = cashList.get(0).getMsgBal();
-                                    bal = Double.parseDouble(balance) - Double.parseDouble(amt);
-                                    balance = Double.toString(bal);
-                                } else {
-                                    // negative in case of expenses
-                                    balance = "-" + amt;
-                                }
-                                break;
-                            case "CR":
-                                if (index >= 0) {
-                                    balance = cashList.get(0).getMsgBal();
-                                    bal = Double.parseDouble(balance) + Double.parseDouble(amt);
-                                    balance = Double.toString(bal);
-                                } else {
-                                    // positive in case of income
-                                    balance = amt;
-                                }
-                                break;
-                        }
-                        // finally the sms object is added to the list
-                        // the date in this sms object is set ot the current date of the system
-                        long time = System.currentTimeMillis();
-
-                        Sms s = new Sms(type, amt, Long.toString(time), balance);
+                    public void OnSaveClick() {
+                        Sms s = dialog.getTransaction();
                         cashList.add(0, s);
                         databaseHandler.addCashSms(s);
-
-                        dialog.dismiss();
 
                         readCash.scrollToPosition(0);
                         myAdapter.notifyItemInserted(0);
 
-                        Toast.makeText(CashTransactions.this, "Transaction Added", Toast.LENGTH_SHORT).show();
-                        if (s.getMsgType().equals("Personal Expenses") || s.getMsgType().equals("Food") || s.getMsgType().equals("Transport")) {
-                            cashSpent = Double.toString(Double.parseDouble(cashSpent) + Double.parseDouble(amt));
+                        if (s.getDrOrCr().equals("DR")) {
+                            cashSpent = Double.toString(Double.parseDouble(cashSpent) + s.getAmtDouble());
                         }
+
+                        Toast.makeText(CashTransactions.this, "Transaction Added", Toast.LENGTH_SHORT).show();
                     }
                 });
                 break;
             case R.id.forward:
                 List<Sms> smsList1 = new ArrayList<>();
                 for (Sms s : cashList) {
-                    if (s.getMsgType().equals("Personal Expenses") || s.getMsgType().equals("Food") || s.getMsgType().equals("Transport")) {
+                    if (s.getDrOrCr().equals("DR")) {
                         smsList1.add(s);
                     }
                 }
@@ -213,9 +132,13 @@ public class CashTransactions extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
-    public String getDate(long milliSeconds) {
-        // Create a DateFormatter object for displaying date in specified format.
-        SimpleDateFormat formatter = new SimpleDateFormat("dd/MMM/yy");
-        return formatter.format(new Date(milliSeconds));
+    private void sendDataBack() {
+        Intent intent = new Intent();
+        Bundle bundle = new Bundle();
+        bundle.putSerializable("cash", (Serializable) cashList);
+        bundle.putString("SPENT", cashSpent);
+        intent.putExtra("Result", bundle);
+        setResult(1, intent);
+        finish();
     }
 }

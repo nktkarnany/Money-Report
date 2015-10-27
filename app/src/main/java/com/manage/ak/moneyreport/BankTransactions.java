@@ -67,7 +67,7 @@ public class BankTransactions extends AppCompatActivity {
             case R.id.forward:
                 List<Sms> smsList1 = new ArrayList<>();
                 for (Sms s : bankList) {
-                    if (s.getMsgType().equals("Personal Expenses") || s.getMsgType().equals("Food") || s.getMsgType().equals("Transport")) {
+                    if (s.getDrOrCr().equals("DR")) {
                         smsList1.add(s);
                     }
                 }
