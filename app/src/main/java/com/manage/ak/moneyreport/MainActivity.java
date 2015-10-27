@@ -1,8 +1,10 @@
 package com.manage.ak.moneyreport;
 
 import android.app.Dialog;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.net.Uri;
@@ -22,14 +24,6 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.google.android.gms.ads.AdRequest;
-import com.google.android.gms.ads.AdSize;
-import com.google.android.gms.ads.AdView;
-
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
@@ -45,17 +39,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private List<Sms> cashList = new ArrayList<>();
 
     // Main balance in the bank
+    // In many places the balance is needed in String form.
     private String BALANCE = "0.0";
     // Total cash spent from cash in hand
     private String CASHSPENT = "0.0";
 
     // variables used to store and calculate balance for the cash transactions
     private String amt, type, balance;
-    private double bal;
-
-    // output stream file in which bank and cash sms are saved
-    private String BANK_FILE = "Bank Transactions";
-    private String CASH_FILE = "Cash Transactions";
 
     // bank balance and date TextView inside the bank card
     private TextView bankBalance;
@@ -64,6 +54,20 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     // spent amount and cash in hand inside the cash card
     private TextView spentAmount;
     private TextView cashBalance;
+
+    private static final String SMS_RECEIVED = "android.provider.Telephony.SMS_RECEIVED";
+    IntentFilter intentFilter = new IntentFilter(SMS_RECEIVED);
+    private BroadcastReceiver sms_receiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if (intent.getAction().equals(SMS_RECEIVED)) {
+                readMessages();
+                Toast.makeText(MainActivity.this, "Reading Message", Toast.LENGTH_SHORT).show();
+            }
+        }
+    };
+
+    DatabaseHandler databaseHandler = new DatabaseHandler(context);
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -85,9 +89,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
             final Sms smsBal = new Sms();
             smsBal.setMsgType("Bank Balance");
-            smsBal.setMsgDate("1433097000000");
+            smsBal.setMsgDate(Long.toString(System.currentTimeMillis()));
 
-            bal_dialog.setTitle("Bank Bal as of " + smsBal.getFormatDate());
+            bal_dialog.setTitle("Current Bank Balance -");
 
             final EditText etBalance = (EditText) bal_dialog.findViewById(R.id.Balance);
             Button saveBalance = (Button) bal_dialog.findViewById(R.id.saveBalance);
@@ -105,6 +109,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     smsBal.setMsgAmt(BALANCE);
                     smsBal.setMsgBal(BALANCE);
                     bankList.add(0, smsBal);
+                    databaseHandler.addBankSms(smsBal);
                     if (bankList.size() > 0) {
                         bankBalance.setText("₹ " + bankList.get(0).getMsgBal());
                         estimateDate.setText(bankList.get(0).getFormatDate());
@@ -116,38 +121,20 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             });
         }
 
-        AdView mAdView = (AdView) findViewById(R.id.adView);
-        AdRequest adRequest = new AdRequest.Builder()
-//                .addTestDevice("AAE5999327EA1F02B184A568C2316129")
-                .build();
-        mAdView.loadAd(adRequest);
-
         try {
-            // file input stream is used to open a file for reading
-            FileInputStream f = context.openFileInput(BANK_FILE);
-            // object input stream is used to read object from the file opened
-            ObjectInputStream i = new ObjectInputStream(f);
             // object read is in the form of list<Sms> so iterate over the list to extract all Sms objects.
-            for (Sms r : (List<Sms>) i.readObject()) {
+            for (Sms r : databaseHandler.getAllSms("bankTransactions")) {
                 bankList.add(r);
             }
-            i.close();
-            f.close();
         } catch (Exception e) {
             e.printStackTrace();
         }
 
         try {
-            // file input stream is used to open a file for reading
-            FileInputStream f = context.openFileInput(CASH_FILE);
-            // object input stream is used to read object from the file opened
-            ObjectInputStream i = new ObjectInputStream(f);
             // object read is in the form of list<Sms> so iterate over the list to extract all Sms objects.
-            for (Sms r : (List<Sms>) i.readObject()) {
+            for (Sms r : databaseHandler.getAllSms("cashTransactions")) {
                 cashList.add(r);
             }
-            i.close();
-            f.close();
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -183,9 +170,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         CardView cashCard = (CardView) findViewById(R.id.cashCard);
         cashCard.setOnClickListener(this);
 
-        TextView refresh = (TextView) findViewById(R.id.refresh);
-        refresh.setOnClickListener(this);
-
         TextView addCash = (TextView) findViewById(R.id.addCash);
         addCash.setOnClickListener(this);
 
@@ -194,6 +178,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         TextView cashReport = (TextView) findViewById(R.id.cashReport);
         cashReport.setOnClickListener(this);
+
+        readMessages();
     }
 
     @Override
@@ -217,10 +203,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 b.putString("Spent", CASHSPENT);
                 cash.putExtra("DATA", b);
                 startActivityForResult(cash, 1);
-                break;
-            case R.id.refresh:
-                Toast.makeText(MainActivity.this, "Reading Transaction sms...", Toast.LENGTH_SHORT).show();
-                readMessages();
                 break;
             case R.id.addCash:
                 final Dialog dialog = new Dialog(context);
@@ -272,8 +254,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                 // index will be zero if there are no messages in the list so balance will be equal to the amount
                                 if (index >= 0) {
                                     balance = cashList.get(0).getMsgBal();
-                                    bal = Double.parseDouble(balance) - Double.parseDouble(amt);
-                                    balance = Double.toString(bal);
+                                    balance = Double.toString(Double.parseDouble(balance) - Double.parseDouble(amt));
                                 } else {
                                     // negative in case of expenses
                                     balance = "-" + amt;
@@ -282,8 +263,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                             case "CR":
                                 if (index >= 0) {
                                     balance = cashList.get(0).getMsgBal();
-                                    bal = Double.parseDouble(balance) + Double.parseDouble(amt);
-                                    balance = Double.toString(bal);
+                                    balance = Double.toString(Double.parseDouble(balance) + Double.parseDouble(amt));
                                 } else {
                                     // positive in case of income
                                     balance = amt;
@@ -295,6 +275,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         long time = System.currentTimeMillis();
                         Sms s = new Sms(type, amt, Long.toString(time), balance);
                         cashList.add(0, s);
+                        databaseHandler.addCashSms(s);
                         dialog.dismiss();
                         if (s.getMsgType().equals("Personal Expenses") || s.getMsgType().equals("Food") || s.getMsgType().equals("Transport")) {
                             CASHSPENT = Double.toString(Double.parseDouble(CASHSPENT) + Double.parseDouble(amt));
@@ -432,6 +413,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                             sms.setMsgBal(Double.toString(Double.parseDouble(BALANCE) - Double.parseDouble(a)));
                             BALANCE = sms.getMsgBal();
                             bankList.add(0, sms);
+                            databaseHandler.addBankSms(sms);
                         } else {
                             c.moveToPrevious();
                             continue;
@@ -447,6 +429,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                             sms.setMsgBal(Double.toString(Double.parseDouble(BALANCE) + Double.parseDouble(a1)));
                             BALANCE = sms.getMsgBal();
                             bankList.add(0, sms);
+                            databaseHandler.addBankSms(sms);
                         } else {
                             c.moveToPrevious();
                             continue;
@@ -507,9 +490,17 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     @Override
+    protected void onResume() {
+        super.onResume();
+        // registering a BroadcastReceiver to listen to incoming messages
+        registerReceiver(sms_receiver, intentFilter);
+    }
+
+    @Override
     protected void onPause() {
         super.onPause();
         save();
+        unregisterReceiver(sms_receiver);
     }
 
     @Override
@@ -519,32 +510,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     public void save() {
-        // saving the bank list
-        try {
-            // file output stream is used to open a file for writing
-            FileOutputStream f = context.openFileOutput(BANK_FILE, Context.MODE_PRIVATE);
-            // object output stream is used to write object to the file opened
-            ObjectOutputStream o = new ObjectOutputStream(f);
-            o.writeObject(bankList);
-            o.close();
-            f.close();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        // saving the cash list
-        try {
-            // file output stream is used to open a file for writing
-            FileOutputStream f = context.openFileOutput(CASH_FILE, Context.MODE_PRIVATE);
-            // object output stream is used to write object to the file opened
-            ObjectOutputStream o = new ObjectOutputStream(f);
-            o.writeObject(cashList);
-            o.close();
-            f.close();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
         // saving the total cash spent and the bank balance
         SharedPreferences saveSpent = getSharedPreferences("KEY", Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = saveSpent.edit();

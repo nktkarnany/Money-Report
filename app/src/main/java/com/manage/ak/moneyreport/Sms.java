@@ -9,7 +9,6 @@ public class Sms implements Serializable {
     private String msgType;
     private String msgAmt;
     private String msgDate;
-    private String formatDate;
     private String msgBal;
 
 

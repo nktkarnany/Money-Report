@@ -40,6 +40,8 @@ public class CashTransactions extends AppCompatActivity {
 
     RecyclerView readCash;
 
+    DatabaseHandler databaseHandler = new DatabaseHandler(context);
+
     private MyAdapter myAdapter;
 
     @Override
@@ -172,6 +174,7 @@ public class CashTransactions extends AppCompatActivity {
 
                         Sms s = new Sms(type, amt, Long.toString(time), balance);
                         cashList.add(0, s);
+                        databaseHandler.addCashSms(s);
 
                         dialog.dismiss();
 
