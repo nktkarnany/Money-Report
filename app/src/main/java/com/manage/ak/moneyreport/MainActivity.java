@@ -56,6 +56,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private TextView spentAmount;
     private TextView cashBalance;
 
+    // BroadcastReceiver listening to the incoming messages
     private static final String SMS_RECEIVED = "android.provider.Telephony.SMS_RECEIVED";
     IntentFilter intentFilter = new IntentFilter(SMS_RECEIVED);
     private BroadcastReceiver sms_receiver = new BroadcastReceiver() {
@@ -63,7 +64,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         public void onReceive(Context context, Intent intent) {
             if (intent.getAction().equals(SMS_RECEIVED)) {
                 readMessages();
-                Toast.makeText(MainActivity.this, "Reading Message", Toast.LENGTH_SHORT).show();
+                Toast.makeText(MainActivity.this, "Reading New SMS...", Toast.LENGTH_SHORT).show();
             }
         }
     };
@@ -301,11 +302,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
                 body = body.toLowerCase();
 
-                // some common keywords used in bank messages
-                if ((body.contains("debit") || body.contains("transaction") || body.contains("withdrawn")) && !body.contains("recharge") && !body.contains("paytm") && !body.contains("ola")) {
-                    t = "Personal Expenses";
-                } else if ((body.contains("credit") || body.contains("deposited")) && !body.contains("recharge") && !body.contains("paytm") && !body.contains("ola")) {
-                    t = "Income";
+                if (!Pattern.compile("(recharge|paytm|ola)").matcher(body).find()) {
+                    if (Pattern.compile("(debit|transaction|withdrawn)").matcher(body).find())
+                        t = "Personal Expenses";
+                    else if (Pattern.compile("(credit|deposited)").matcher(body).find())
+                        t = "Income";
                 }
 
                 // switched according to the type to extract information from the message
